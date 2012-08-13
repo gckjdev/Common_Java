@@ -1,14 +1,11 @@
 package com.orange.common.upload;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,7 +25,7 @@ public class UploadManager {
 
 	static final Logger log = Logger.getLogger(UploadManager.class.getName());
 	static String ENCODING_UTF8 = "UTF-8";
-	
+
 	public static UploadFileResult uploadFile(HttpServletRequest request,
 			String localDir, String remoteDir) {
 		String localPath = "";
@@ -124,7 +121,7 @@ public class UploadManager {
 		}
 	}
 
-	private static String saveImage(FileItemStream item, String localDir,
+	private static ParseResult saveImage(FileItemStream item, String localDir,
 			String remoteDir) {
 		String localPath = "";
 		String httpPath = "";
@@ -162,21 +159,38 @@ public class UploadManager {
 			FileUtils.createDir(dir);
 
 			// generate file name
-			String generateFileName = getTimeFileName(filename);
-
+			
+			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+			String largeImageName = timeFileString + ".jpg";
 			// construction path and write file
-			localPath = dir + "/" + generateFileName;
+			localPath = dir + "/" + largeImageName;
 
 			// construct return http path
-			httpPath = remoteDir + timeDir + "/" + generateFileName;
+			httpPath = remoteDir + timeDir + "/" + largeImageName;
 
 			// write to file
 			log.info("<uploadFile> write to file=" + localPath
 					+ ", http path = " + httpPath);
 			FileOutputStream fw = new FileOutputStream(localPath);
 			fw.write(bytes);
-			fw.close();			
-			return httpPath;
+			fw.close();		
+			
+			//create thumb image
+			String thumbImageName = timeFileString + "_m.jpg";
+			String localThumbPath = dir+"/"+thumbImageName;
+			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
+			try {
+				ImageManager.createThumbImage(localPath, localThumbPath, 175, 170);
+			} catch (Exception e) {
+				remoteThumbPath = null;
+				log.error("<UploadManager>: fail to save thumb image");
+				e.printStackTrace();
+			}
+			ParseResult parseResult = new ParseResult();
+			parseResult.setThumbUrl(remoteThumbPath);
+			parseResult.setImageUrl(httpPath);
+			
+			return parseResult;
 			
 		} catch (IOException e) {
 			log.error("error: <saveImage> error, catch exception:");
@@ -186,14 +200,13 @@ public class UploadManager {
 
 	}
 
-	public static ParseResult getFormDataAndSaveImage(HttpServletRequest request,
-			String dataFieldName, String imageFieldName, String localDir,
-			String remoteDir) {
+	public static ParseResult getFormDataAndSaveImage(
+			HttpServletRequest request, String dataFieldName,
+			String imageFieldName, String localDir, String remoteDir) {
 		try {
 			ParseResult result = new ParseResult();
 			request.setCharacterEncoding(ENCODING_UTF8);
 			ServletFileUpload upload = new ServletFileUpload();
-			// upload.setProgressListener(progressListener);
 			if (!ServletFileUpload.isMultipartContent(request)) {
 				log
 						.info("<getFormDataAndSaveImage> the request doesn't contain a multipart/form-data "
@@ -203,7 +216,8 @@ public class UploadManager {
 
 			FileItemIterator iter = upload.getItemIterator(request);
 			if (iter == null) {
-				log.info("<getFormDataAndSaveImage> the item iterator is null.");
+				log
+						.info("<getFormDataAndSaveImage> the item iterator is null.");
 				return null;
 			}
 
@@ -213,29 +227,32 @@ public class UploadManager {
 				InputStream stream = item.openStream();
 				if (!item.isFormField()) {
 					if (name != null && name.equalsIgnoreCase(dataFieldName)) {
-						log.info("<getFormDataAndSaveImage> draw data file detected.");
+						log
+								.info("<getFormDataAndSaveImage> draw data file detected.");
 						byte[] data = CommonService.readPostData(stream);
 						result.setData(data);
 					} else if (name != null
 							&& name.equalsIgnoreCase(imageFieldName)) {
-						log.info("<getFormDataAndSaveImage> image data file detected.");
-						String url = saveImage(item, localDir, remoteDir);
-						result.setImageUrl(url);
+						log
+								.info("<getFormDataAndSaveImage> image data file detected.");
+						ParseResult pr = saveImage(item, localDir, remoteDir);
+						result.setImageUrl(pr.getImageUrl());
+						result.setThumbUrl(pr.getThumbUrl());
 					}
 				}
 			}
 			return result;
 		} catch (Exception e) {
-			log.error("<getFormDataValueByField> fail to parse data and save image"
-					+ ", but catch exception=" + e.toString(), e);
+			log.error(
+					"<getFormDataValueByField> fail to parse data and save image"
+							+ ", but catch exception=" + e.toString(), e);
 			return null;
 		}
 
 	}
 
 	private static String getTimeFileName(String filename) {
-		return TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString() + "_"
-				+ filename;
+		return TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString() + ".jpg";
 	}
 
 	private static String getTimeFilePath() {
@@ -259,29 +276,43 @@ public class UploadManager {
 		}
 	};
 
-	public static class ParseResult{
+	public static class ParseResult {
 		private String imageUrl;
+		private String thumbUrl;
 		private byte[] data;
-		
-		public ParseResult(){
+
+		public ParseResult() {
 			super();
 		}
+
 		public ParseResult(String url, byte[] data) {
 			super();
 			this.imageUrl = url;
 			this.data = data;
 		}
+
 		public void setImageUrl(String imageUrl) {
 			this.imageUrl = imageUrl;
 		}
+
 		public void setData(byte[] data) {
 			this.data = data;
 		}
+
 		public String getImageUrl() {
 			return imageUrl;
 		}
+
 		public byte[] getData() {
 			return data;
+		}
+
+		public String getThumbUrl() {
+			return thumbUrl;
+		}
+
+		public void setThumbUrl(String thumbUrl) {
+			this.thumbUrl = thumbUrl;
 		}
 
 	}
