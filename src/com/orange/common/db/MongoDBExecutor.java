@@ -7,32 +7,28 @@ import java.util.concurrent.Executors;
 import com.orange.common.mongodb.MongoDBClient;
 
 // TODO not implement yet
-public class MongoDBExecutor {
+public abstract class MongoDBExecutor {
 
 	public static final String DB_NAME = "game";
-	
-	
-	MongoDBClient mongoClient = new MongoDBClient(DB_NAME);
-    
-    public MongoDBClient getMongoClient(){
-    	return mongoClient;
-    }
+		
+	final MongoDBClient[] mongoClientList;   
     
 	protected static final int EXECUTOR_POOL_NUM = 5;
 
 	CopyOnWriteArrayList<ExecutorService> executorList = new CopyOnWriteArrayList<ExecutorService>();
 	
-	// thread-safe singleton implementation
-    private static MongoDBExecutor manager = new MongoDBExecutor();     
-    private MongoDBExecutor(){		
+	abstract public String getDBName();
+	
+	public MongoDBExecutor(){		
+		
+		mongoClientList = new MongoDBClient[EXECUTOR_POOL_NUM];
+		
     	for (int i=0; i<EXECUTOR_POOL_NUM; i++){
+    		mongoClientList[i] = new MongoDBClient(getDBName());
     		ExecutorService executor = Executors.newSingleThreadExecutor();
     		executorList.add(executor);
     	}
 	} 	    
-    public static MongoDBExecutor getInstance() { 
-    	return manager; 
-    }	
     
     public void executeDBRequest(final int sessionId, Runnable runnable){
     	ExecutorService executor = getExecutor(sessionId);
@@ -44,7 +40,8 @@ public class MongoDBExecutor {
 		return executorList.get(index);
 	}
     
-    public MongoDBClient getMongoDBClient(){
-    	return mongoClient;
+    public MongoDBClient getMongoDBClient(int sessionId){
+    	int index = sessionId % EXECUTOR_POOL_NUM;
+    	return mongoClientList[index];
     }
 }
