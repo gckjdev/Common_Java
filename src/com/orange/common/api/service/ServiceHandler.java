@@ -89,6 +89,22 @@ public class ServiceHandler {
 						CommonErrorCode.ERROR_INVALID_SECURITY, gzip, format);
 				return;
 			}
+			
+			// common black user handling here, hard code for quick implementation
+			String userId = request.getParameter("uid");
+			if (obj.isBlackUser(userId)){
+				sendResponseByErrorCode(response,
+						CommonErrorCode.ERROR_BLACK_USER, gzip, format);
+				return;				
+			}
+			
+			// check black device
+			String deviceId = request.getParameter("did");
+			if (obj.isBlackDevice(deviceId)){
+				sendResponseByErrorCode(response,
+						CommonErrorCode.ERROR_BLACK_DEVICE, gzip, format);
+				return;				
+			}
 
 			// parse request parameters
 			if (!obj.setDataFromRequest(request)) {
