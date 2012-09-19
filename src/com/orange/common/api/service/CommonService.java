@@ -21,7 +21,7 @@ import com.orange.common.mongodb.MongoDBClient;
 import com.orange.common.utils.StringUtil;
 
 public abstract class CommonService {
-	
+		
 	/** 
      * Read the next line of input. 
      * 
@@ -231,6 +231,30 @@ public abstract class CommonService {
 			return Long.valueOf(value);
 		}
 		return defaultValue;
+	}
+
+	public boolean isBlackDevice(String deviceId) {
+		if (StringUtil.isEmpty(deviceId)){
+			return false;
+		}		
+		if (mongoClient.findOne("black_device", "_id", deviceId) != null){
+	    	log.info("Check Black Device, deviceId="+deviceId+" in black list!!!");
+			return true;
+		}
+		
+		return false;		
+	}
+	
+	public boolean isBlackUser(String userId) {
+		if (StringUtil.isEmpty(userId))
+			return false;
+		
+		if (mongoClient.findOneByObjectId("black_user", userId) != null){
+	    	log.info("Check Black User, userId="+userId+" in black list!!!");
+			return true;
+		}
+
+		return false;
 	}
 
 }

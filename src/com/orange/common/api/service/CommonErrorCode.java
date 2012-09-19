@@ -22,6 +22,8 @@ public class CommonErrorCode {
 	static public final int ERROR_INVALID_SECURITY			= 90003;
 	static public final int ERROR_NAME_VALUE_NOTMATCH		= 90004;
 	static public final int ERROR_JSON 						= 90005;
+	public static final int ERROR_BLACK_USER 				= 90006;
+	public static final int ERROR_BLACK_DEVICE 				= 90007;
 
 	
 	static public String getJSONByErrorCode(int errorCode){
