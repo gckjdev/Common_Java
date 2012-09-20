@@ -62,13 +62,19 @@ public class ServiceHandler {
 
 		printRequest(request);
 
+		boolean isSecureMethod = false;
 		String method = request.getParameter(CommonParameter.METHOD);
+		if (method == null){
+			isSecureMethod = true;
+			method = request.getParameter(CommonParameter.METHOD_SECURE);
+		}
+		
 		String format = request.getParameter(CommonParameter.FORMAT);
 		if (format == null){
 			format = CommonParameter.JSON;
 		}
 		
-		CommonService obj = null;
+		CommonService obj = null;		
 		obj = serviceFactory.createServiceObjectByMethod(method);
 
 		try {
@@ -79,6 +85,7 @@ public class ServiceHandler {
 				return;
 			}
 
+			obj.setSecureMethod(isSecureMethod);
 			obj.setCassandraClient(cassandraClient);
 			obj.setMongoClient(mongoClient);
 			obj.setRequest(request);
@@ -91,7 +98,7 @@ public class ServiceHandler {
 			}
 			
 			// common black user handling here, hard code for quick implementation
-			String userId = request.getParameter("uid");
+			String userId = request.getParameter(CommonParameter.PARA_USER_ID);
 			if (obj.isBlackUser(userId)){
 				sendResponseByErrorCode(response,
 						CommonErrorCode.ERROR_BLACK_USER, gzip, format);
@@ -99,7 +106,7 @@ public class ServiceHandler {
 			}
 			
 			// check black device
-			String deviceId = request.getParameter("did");
+			String deviceId = request.getParameter(CommonParameter.PARA_DEVICE_ID);
 			if (obj.isBlackDevice(deviceId)){
 				sendResponseByErrorCode(response,
 						CommonErrorCode.ERROR_BLACK_DEVICE, gzip, format);
@@ -294,7 +301,8 @@ public class ServiceHandler {
 	private void sendResponse(HttpServletResponse response, int errorCode) {
         try {
             response.setStatus(errorCode);
-			response.getOutputStream().flush();
+            response.getWriter().write("");
+			response.getWriter().flush();
 		} catch (Exception e) {
 			log.error("sendResponse, catch exception=" + e.toString(), e);			
 		}

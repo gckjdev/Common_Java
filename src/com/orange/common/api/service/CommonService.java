@@ -74,7 +74,7 @@ public abstract class CommonService {
 	protected byte[] byteData = null;
 	protected String resultType = CommonParameter.APPLICATION_JSON;
 	protected String format = CommonParameter.JSON;
-	
+	protected boolean isSecureMethod = false;
 	
 	protected CassandraClient cassandraClient = null;
 	protected MongoDBClient mongoClient = null;
@@ -131,7 +131,9 @@ public abstract class CommonService {
 	}
 
 	// return false if this method doesn't need security check
-	public abstract boolean needSecurityCheck();
+	protected boolean needSecurityCheck(){
+		return false;
+	}
 
 	// handle request, business logic implementation here
 	// need to set responseData and resultCode and return them as JSON string
@@ -166,12 +168,27 @@ public abstract class CommonService {
 		return true;
 	}
 
-	static final String SHARE_KEY = "NetworkRequestShareKey";
+	static final String SHARE_KEY = "gckj_share_key";
 
+	static final boolean testSkipSecurity = getTestSkipSecurity();
+	private static boolean getTestSkipSecurity() {
+		String value= System.getProperty("config.skip_security");
+		log.info("Config to skip security check mode = "+value);
+		if (value != null && !value.isEmpty()){
+			return (Integer.parseInt(value) != 0);
+		}
+		return false; // default
+	}
+	
 	public boolean validateSecurity(HttpServletRequest request) {
 
+		if (testSkipSecurity){
+			log.debug("config to skip security check");
+			return true;
+		}
+		
 		if (needSecurityCheck() == false) {
-			log.debug("<validateSecurity> skip security check");
+			log.debug("security failure skip security check");
 			return true;
 		}
 
@@ -193,17 +210,17 @@ public abstract class CommonService {
 		String input = timeStamp + SHARE_KEY;
 		String encodeStr = StringUtil.md5base64encode(input);
 		if (encodeStr == null) {
-			log.warn("<validateSecurity> failure, input=" + input
+			log.warn("security failure failure, input=" + input
 					+ ",client mac=" + mac + ",server mac=null");
 			return false;
 		}
 
 		if (encodeStr.equals(mac)) {
-			log.info("<validateSecurity> OK, input=" + input + ",client mac="
+			log.debug("security failure OK, input=" + input + ",client mac="
 					+ mac + ",server mac=" + encodeStr);
 			return true;
 		} else {
-			log.warn("<validateSecurity> failure, input=" + input
+			log.warn("security failure, input=" + input
 					+ ",client mac=" + mac + ",server mac=" + encodeStr);
 			return false;
 		}
@@ -237,7 +254,7 @@ public abstract class CommonService {
 		if (StringUtil.isEmpty(deviceId)){
 			return false;
 		}		
-		if (mongoClient.findOne("black_device", "_id", deviceId) != null){
+		if (mongoClient.findOne(CommonParameter.TABLE_BLACK_DEVICE, "_id", deviceId) != null){
 	    	log.info("Check Black Device, deviceId="+deviceId+" in black list!!!");
 			return true;
 		}
@@ -249,12 +266,20 @@ public abstract class CommonService {
 		if (StringUtil.isEmpty(userId))
 			return false;
 		
-		if (mongoClient.findOneByObjectId("black_user", userId) != null){
+		if (mongoClient.findOneByObjectId(CommonParameter.TABLE_BLACK_USER, userId) != null){
 	    	log.info("Check Black User, userId="+userId+" in black list!!!");
 			return true;
 		}
 
 		return false;
+	}
+
+	public void setSecureMethod(boolean isSecureMethod) {
+		this.isSecureMethod = isSecureMethod;
+	}
+	
+	public boolean isSecureMethod(){
+		return this.isSecureMethod;
 	}
 
 }

@@ -7,10 +7,13 @@ public class CommonParameter {
 	
 	
 	public static final String METHOD = "m";
+	public static final String METHOD_SECURE = "m1";
 	public static final String FORMAT = "format";	
 	
 	public static final String PARA_TIMESTAMP = "ts";
 	public static final String PARA_MAC = "mac";
+	public static final String PARA_USER_ID = "uid";
+	public static final String PARA_DEVICE_ID = "did";
 	
 	public static final String TEXT_HTML = "text/html; charset=utf-8";
 	
@@ -23,4 +26,11 @@ public class CommonParameter {
 
 	public static final String JSON = "json";
 	public static final String PROTOCOL_BUFFER = "pb";
+	
+	public static final String TABLE_BLACK_DEVICE = "black_device";
+	public static final String TABLE_BLACK_USER = "black_user";
+	
+	public static boolean isSecureMethod(String method){
+		return (method != null && method.equals(METHOD_SECURE));
+	}
 }
