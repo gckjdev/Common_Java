@@ -180,7 +180,7 @@ public class UploadManager {
 			String localThumbPath = dir+"/"+thumbImageName;
 			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
 			try {
-				ImageManager.createThumbImage(localPath, localThumbPath, 175, 170);
+				ImageManager.createThumbImage(localPath, localThumbPath, 256, 245);
 			} catch (Exception e) {
 				remoteThumbPath = null;
 				log.error("<UploadManager>: fail to save thumb image");
