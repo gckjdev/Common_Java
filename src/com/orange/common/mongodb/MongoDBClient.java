@@ -385,7 +385,7 @@ public class MongoDBClient {
 		return cursor;
 	}
 	
-	public DBCursor find(String tableName, DBObject query,DBObject retureFields, DBObject orderBy,
+	public DBCursor find(String tableName, DBObject query,DBObject returnFields, DBObject orderBy,
 			int offset, int limit) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
@@ -393,9 +393,9 @@ public class MongoDBClient {
 
 		DBCursor cursor = null;
 		if (orderBy == null) {
-			cursor = collection.find(query,retureFields).skip(offset).limit(limit);
+			cursor = collection.find(query,returnFields).skip(offset).limit(limit);
 		} else {
-			cursor = collection.find(query,retureFields).sort(orderBy).skip(offset).limit(
+			cursor = collection.find(query,returnFields).sort(orderBy).skip(offset).limit(
 					limit);
 		}
 
