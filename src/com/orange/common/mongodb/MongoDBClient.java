@@ -171,6 +171,20 @@ public class MongoDBClient {
 				false);
 	}
 	
+	// returnNew = true, upsert = true
+	public DBObject findAndModifyUpsert(String tableName, DBObject query,
+			DBObject update) {
+		DBCollection collection = db.getCollection(tableName);
+		if (collection == null)
+			return null;
+
+		// System.out.println("update db, query = " + query.toString() +
+		// ", update = " + update.toString());
+		return collection.findAndModify(query, null, null, false, update, true,
+				true);
+	}
+
+	
 	public void updateOne(String tableName, DBObject query, DBObject update) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
