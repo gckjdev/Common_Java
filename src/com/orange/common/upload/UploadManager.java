@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -180,21 +181,25 @@ public class UploadManager {
 			String localThumbPath = dir+"/"+thumbImageName;
 			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
 			try {
-				ImageManager.createThumbImage(localPath, localThumbPath, 256, 245);
+//				ImageManager.createThumbImage(localPath, localThumbPath, 256, 245);
+				String result = ImageManager.createThumbnail(localPath, localThumbPath, 300);
+				log.info("<UploadManager> create thumb file result="+result);
 			} catch (Exception e) {
 				remoteThumbPath = null;
-				log.error("<UploadManager>: fail to save thumb image");
-				e.printStackTrace();
+				log.error("<UploadManager>: fail to save thumb image", e);
 			}
 			ParseResult parseResult = new ParseResult();
+			
+			parseResult.setLocalImageUrl(timeDir+"/"+largeImageName);
+			parseResult.setLocalThumbUrl(timeDir+"/"+thumbImageName);
 			parseResult.setThumbUrl(remoteThumbPath);
 			parseResult.setImageUrl(httpPath);
 			
+			log.info("<debug> image parse result="+parseResult.toString());			
 			return parseResult;
 			
-		} catch (IOException e) {
-			log.error("error: <saveImage> error, catch exception:");
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.error("error: <saveImage> error, catch exception:", e);
 			return null;
 		}
 
@@ -236,8 +241,13 @@ public class UploadManager {
 						log
 								.info("<getFormDataAndSaveImage> image data file detected.");
 						ParseResult pr = saveImage(item, localDir, remoteDir);
-						result.setImageUrl(pr.getImageUrl());
-						result.setThumbUrl(pr.getThumbUrl());
+
+						if (pr !=null){
+							result.setImageUrl(pr.getImageUrl());
+							result.setThumbUrl(pr.getThumbUrl());
+							result.setLocalImageUrl(pr.getLocalImageUrl());
+							result.setLocalThumbUrl(pr.getLocalThumbUrl());
+						}
 					}
 				}
 			}
@@ -279,6 +289,9 @@ public class UploadManager {
 	public static class ParseResult {
 		private String imageUrl;
 		private String thumbUrl;
+		private String localImageUrl;
+		private String localThumbUrl;
+
 		private byte[] data;
 
 		public ParseResult() {
@@ -315,5 +328,30 @@ public class UploadManager {
 			this.thumbUrl = thumbUrl;
 		}
 
+		public String getLocalImageUrl() {
+			return localImageUrl;
+		}
+
+		public void setLocalImageUrl(String localImageUrl) {
+			this.localImageUrl = localImageUrl;
+		}
+
+		public String getLocalThumbUrl() {
+			return localThumbUrl;
+		}
+
+		public void setLocalThumbUrl(String localThumbUrl) {
+			this.localThumbUrl = localThumbUrl;
+		}
+
+		@Override
+		public String toString() {
+			return "ParseResult [imageUrl=" + imageUrl + ", thumbUrl="
+					+ thumbUrl + ", localImageUrl=" + localImageUrl
+					+ ", localThumbUrl=" + localThumbUrl + ", data="
+					+ Arrays.toString(data) + "]";
+		}
+
+		
 	}
 }
