@@ -2,12 +2,6 @@
 <project>
 	<repositories>
 		<repository>
-			<id>nexus</id>
-			<name>local nexus</name>
-			<!-- <url>http://localhost:8081/nexus/content/groups/public</url> -->
-			<url>http://192.168.1.101:8091/nexus/content/groups/public</url> 
-		</repository>
-		<repository>
 			<id>repo1 central</id>
 			<name>Maven Central Repo1</name>
 			<url>http://repo1.maven.org/maven2</url>
@@ -139,6 +133,8 @@
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
 		</dependency>
+        
+<!--        
 		<dependency>
 			<groupId>tencent</groupId>
 			<artifactId>QWeibo</artifactId>
@@ -149,6 +145,8 @@
 			<artifactId>weibo4j</artifactId>
 			<version>20110610</version>
 		</dependency>
+-->        
+        
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>

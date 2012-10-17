@@ -75,18 +75,18 @@ public class SNSRequestManager {
 		String key = null;
 		String secret = null;
 		switch (snsRequestType) {
-		case SNSRequest.REQUEST_Type_QQ_WEIBO:
-			key = manager.getQQWeiboConsumerKey();
-			secret = manager.getQQWeiboConsumerSecret();
-			if (!checkConsumerToken(key, secret))
-				return null;
-			return new QQWeiboSNS(key, secret);
-		case SNSRequest.REQUEST_Type_SINA_WEIBO:
-			key = manager.getSinaWeiboConsumerKey();
-			secret = manager.getSinaWeiboConsumerSecret();
-			if (!checkConsumerToken(key, secret))
-				return null;
-			return new SinaWeiboSNS(key, secret);
+//		case SNSRequest.REQUEST_Type_QQ_WEIBO:
+//			key = manager.getQQWeiboConsumerKey();
+//			secret = manager.getQQWeiboConsumerSecret();
+//			if (!checkConsumerToken(key, secret))
+//				return null;
+//			return new QQWeiboSNS(key, secret);
+//		case SNSRequest.REQUEST_Type_SINA_WEIBO:
+//			key = manager.getSinaWeiboConsumerKey();
+//			secret = manager.getSinaWeiboConsumerSecret();
+//			if (!checkConsumerToken(key, secret))
+//				return null;
+//			return new SinaWeiboSNS(key, secret);
 		default:
 			return null;
 		}
@@ -96,18 +96,18 @@ public class SNSRequestManager {
 		String key = null;
 		String secret = null;
 		switch (snsRequestType) {
-		case SNSRequest.REQUEST_Type_QQ_WEIBO:
-			key = manager.getQQWeiboConsumerKey();
-			secret = manager.getQQWeiboConsumerSecret();
-			if (!checkConsumerToken(key, secret))
-				return null;
-			return new QQWeiboSNS(key, secret);
-		case SNSRequest.REQUEST_Type_SINA_WEIBO:
-			key = manager.getSinaWeiboConsumerKey();
-			secret = manager.getSinaWeiboConsumerSecret();
-			if (!checkConsumerToken(key, secret))
-				return null;
-			return new SinaWeiboSNS(key, secret);
+//		case SNSRequest.REQUEST_Type_QQ_WEIBO:
+//			key = manager.getQQWeiboConsumerKey();
+//			secret = manager.getQQWeiboConsumerSecret();
+//			if (!checkConsumerToken(key, secret))
+//				return null;
+//			return new QQWeiboSNS(key, secret);
+//		case SNSRequest.REQUEST_Type_SINA_WEIBO:
+//			key = manager.getSinaWeiboConsumerKey();
+//			secret = manager.getSinaWeiboConsumerSecret();
+//			if (!checkConsumerToken(key, secret))
+//				return null;
+//			return new SinaWeiboSNS(key, secret);
 		default:
 			return null;
 		}

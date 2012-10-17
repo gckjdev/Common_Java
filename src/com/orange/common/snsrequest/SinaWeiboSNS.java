@@ -1,3 +1,4 @@
+/*
 package com.orange.common.snsrequest;
 
 import java.io.File;
@@ -95,3 +96,4 @@ public class SinaWeiboSNS extends SNS {
 	
 
 }
+*/
