@@ -1,9 +1,12 @@
 package com.orange.common.utils;
 
+import org.apache.log4j.Logger;
+
 
 
 public class IntegerUtil {
 	
+	private static final Logger logger = Logger.getLogger(IntegerUtil.class.getName());
 	/*
 	 * <num>里有多少个<bitType>?
 	 * 
@@ -63,7 +66,7 @@ public class IntegerUtil {
 		// 开始作判断，我们要找的就是和pattern一样的窗口值。
 		// 如果当前窗口与pattern进行[和]操作后仍为pattern，就说明num有连续count个bitType,
 		// 于是结束该方法。 否则，把num右移，继续作判断。直到num为0，那表示num没有，返回false.
-		// 其中每次num右移的位数是有讲究的，因为我们要找的是pattern这个值，如num的最低3位是011,
+		// 其中每次num右移的位数是有技巧的，因为我们要找的是pattern这个值，如num的最低3位是011,
 		// 那么num直接右移3位; 如果是110,那只能右移1位.
 		// 所以，里层的while循环就是为了找出当前窗口中最高位的0, 然后右移相应的位。
 		while ( num != 0 ) {
@@ -72,10 +75,11 @@ public class IntegerUtil {
 				return true;
 			}
 			else  {
-				// the while 
-				while ( ( window & (1 << (count-1)) ) != 0 )
-					count--;
-				num >>= count;
+				int howManyBitToShift = count;
+				while ( ( window & (1 << (howManyBitToShift-1)) ) != 0 )
+					howManyBitToShift--;
+				
+				num >>= howManyBitToShift;
 			}
 		}	
 		
