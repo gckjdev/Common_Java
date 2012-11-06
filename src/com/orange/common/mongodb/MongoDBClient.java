@@ -2,6 +2,7 @@ package com.orange.common.mongodb;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
+import com.orange.common.utils.StringUtil;
 
 public class MongoDBClient {
 
@@ -295,7 +297,7 @@ public class MongoDBClient {
 
 	
 	public DBObject findOneWithArrayLimit(String tableName, DBObject query,
-			String arrayField, int offset, int limit) {
+			String arrayField, int offset, int limit, HashSet<String>returnFields) {
 		if (query == null)
 			return null;
 
@@ -310,7 +312,13 @@ public class MongoDBClient {
 		slice.put("$slice", sliceList);
 		DBObject field = new BasicDBObject();
 		field.put(arrayField, slice);
-
+		if (returnFields != null && !returnFields.isEmpty()) {
+			for (String fld : returnFields) {
+				if (!StringUtil.isEmpty(fld)) {
+					field.put(fld, 1);
+				}
+			}
+		}
 		return collection.findOne(query, field);
 	}
 
@@ -419,14 +427,13 @@ public class MongoDBClient {
 
 	public DBCursor findByIds(String tableName, String fieldName,
 			List<ObjectId> valueList) {
-
+		if (valueList == null || valueList.size() == 0)
+			return null;
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
 		DBObject in = new BasicDBObject();
 		DBObject query = new BasicDBObject();
-		if (valueList == null || valueList.size() == 0)
-			return null;
 		in.put("$in", valueList);
 		query.put(fieldName, in);
 		DBCursor result = collection.find(query);
@@ -657,6 +664,13 @@ public class MongoDBClient {
 			DBObject fields) {
 		return findOne(tableName, "_id", new ObjectId(objectId), fields);
 	}
-	
+
+	public DBCursor findAll(String tableName, DBObject query,
+			DBObject returnFields) {
+		DBCollection collection = db.getCollection(tableName);
+		if (collection == null)
+			return null;
+		return collection.find(query,returnFields);
+	}
 
 }
