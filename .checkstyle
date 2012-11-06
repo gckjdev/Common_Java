@@ -4,7 +4,7 @@
   <local-check-config name="taobao" location="E:\taobao-checker-1.0.20\taobao-checker-1.0.2.xml" type="external" description="">
     <additional-data name="protect-config-file" value="false"/>
   </local-check-config>
-  <fileset name="all" enabled="true" check-config-name="taobao" local="true">
+  <fileset name="all" enabled="true" check-config-name="Sun Checks" local="false">
     <file-match-pattern match-pattern="." include-pattern="true"/>
   </fileset>
 </fileset-config>

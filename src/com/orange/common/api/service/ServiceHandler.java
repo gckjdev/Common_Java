@@ -147,7 +147,12 @@ public class ServiceHandler {
 			String responseType = obj.resultType;
 
 			// send back response
-			sendResponse(response, responseData, responseType, gzip);			
+			if (responseData != null){
+				sendResponse(response, responseData, responseType, gzip);
+			}
+			else{
+				sendResponse(response, responseData, responseType, false);
+			}
 		}
 		else {
 			String responseData = obj.getResponseString();
@@ -234,8 +239,13 @@ public class ServiceHandler {
 	            response.getOutputStream().flush();
 	        }
 			else{
-				response.getOutputStream().write(responseData);
-				response.getOutputStream().flush();
+				if (responseData != null){
+					response.getOutputStream().write(responseData);
+					response.getOutputStream().flush();
+				}
+				else{
+					response.getOutputStream().flush();
+				}
 			}
 		} catch (IOException e) {
 			log.error("sendResponse, catch exception=" + e.toString(), e);			
