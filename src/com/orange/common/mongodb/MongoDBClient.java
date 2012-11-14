@@ -76,15 +76,15 @@ public class MongoDBClient {
 		try {
 			this.mongo = new Mongo(address, port);
 		} catch (UnknownHostException e) {
-			e.printStackTrace(); // TODO
+			log.error("<MongoDBClient> connect to DB server but catch UnknownHostException="+e.toString(), e);
 		} catch (MongoException e) {
-			e.printStackTrace(); // TODO
+			log.error("<MongoDBClient> connect to DB server but catch MongoException="+e.toString(), e);
 		}
 
 		this.db = mongo.getDB(dbName);
 		return;
 	}
-
+	
 	public boolean insert(String tableName, DBObject docObject) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)

@@ -60,8 +60,12 @@ public class ChannelUserManager {
     
     public void removeChannel(Channel channel){
     	
-    	try{    		
-    		logger.info("<removeChannel> "+channel.toString() + ChannelUtils.getChannelState(channel));
+    	try{    	
+    		if (!channelUserMap.containsKey(channel)){
+    			return;
+    		}
+    		
+//    		logger.info("<removeChannel> "+channel.toString() + ChannelUtils.getChannelState(channel));
     		
     		if (channel.isBound()){
     			channel.unbind();
@@ -93,7 +97,7 @@ public class ChannelUserManager {
 	public List<String> findUsersInChannel(Channel channel) {		
 		List<String> list = channelUserMap.get(channel);
 		if (list == null){
-			logger.error("<findUsersInChannel> channel="+channel.toString() + " but no user???");
+//			logger.error("<findUsersInChannel> channel="+channel.toString() + " but no user???");
 			return Collections.emptyList();
 		}
 		
