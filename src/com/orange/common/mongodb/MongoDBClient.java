@@ -634,13 +634,20 @@ public class MongoDBClient {
 	}
 
 	public DBCursor findAll(String tableName) {
+		return findAll(tableName, null);
+	}
+
+	public DBCursor findAll(String tableName, DBObject order) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
-
+		if (order != null) {
+			return collection.find().sort(order);	
+		}
 		return collection.find();
 	}
 
+	
 	public DBCursor find(String tableName, String fieldName, String fieldValue) {
 
 		DBCollection collection = db.getCollection(tableName);
