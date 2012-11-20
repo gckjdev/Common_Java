@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -86,8 +88,12 @@ public abstract class CommonApiServer extends AbstractHandler
 		log.info(getAppNameVersion());
     	
 		Server server = new Server(getPort());
+		for (Connector connector : server.getConnectors()) {
+			connector.setRequestHeaderSize(1024 * 30);
+		}		
 		server.setHandler(getHandler());
         
+		
         QueuedThreadPool threadPool = new QueuedThreadPool();  
         threadPool.setMaxThreads(100);
         threadPool.setMinThreads(25);
