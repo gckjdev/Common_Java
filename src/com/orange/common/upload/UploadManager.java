@@ -160,8 +160,9 @@ public class UploadManager {
 			FileUtils.createDir(dir);
 
 			// generate file name
-			
-			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+
+			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis()
+					.toString();
 			String largeImageName = timeFileString + ".jpg";
 			// construction path and write file
 			localPath = dir + "/" + largeImageName;
@@ -174,30 +175,32 @@ public class UploadManager {
 					+ ", http path = " + httpPath);
 			FileOutputStream fw = new FileOutputStream(localPath);
 			fw.write(bytes);
-			fw.close();		
-			
-			//create thumb image
+			fw.close();
+
+			// create thumb image
 			String thumbImageName = timeFileString + "_m.jpg";
-			String localThumbPath = dir+"/"+thumbImageName;
+			String localThumbPath = dir + "/" + thumbImageName;
 			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
 			try {
-//				ImageManager.createThumbImage(localPath, localThumbPath, 256, 245);
-				String result = ImageManager.createThumbnail(localPath, localThumbPath, 300);
-				log.info("<UploadManager> create thumb file result="+result);
+				// ImageManager.createThumbImage(localPath, localThumbPath, 256,
+				// 245);
+				String result = ImageManager.createThumbnail(localPath,
+						localThumbPath, 300);
+				log.info("<UploadManager> create thumb file result=" + result);
 			} catch (Exception e) {
 				remoteThumbPath = null;
 				log.error("<UploadManager>: fail to save thumb image", e);
 			}
 			ParseResult parseResult = new ParseResult();
-			
-			parseResult.setLocalImageUrl(timeDir+"/"+largeImageName);
-			parseResult.setLocalThumbUrl(timeDir+"/"+thumbImageName);
+
+			parseResult.setLocalImageUrl(timeDir + "/" + largeImageName);
+			parseResult.setLocalThumbUrl(timeDir + "/" + thumbImageName);
 			parseResult.setThumbUrl(remoteThumbPath);
 			parseResult.setImageUrl(httpPath);
-			
-			log.info("<debug> image parse result="+parseResult.toString());			
+
+			log.info("<debug> image parse result=" + parseResult.toString());
 			return parseResult;
-			
+
 		} catch (Exception e) {
 			log.error("error: <saveImage> error, catch exception:", e);
 			return null;
@@ -231,7 +234,8 @@ public class UploadManager {
 				String name = item.getFieldName();
 				InputStream stream = item.openStream();
 				if (!item.isFormField()) {
-					if (name != null && name.equalsIgnoreCase(dataFieldName)) {
+					if (name != null && dataFieldName != null
+							&& name.equalsIgnoreCase(dataFieldName)) {
 						log
 								.info("<getFormDataAndSaveImage> draw data file detected.");
 						byte[] data = CommonService.readPostData(stream);
@@ -242,7 +246,7 @@ public class UploadManager {
 								.info("<getFormDataAndSaveImage> image data file detected.");
 						ParseResult pr = saveImage(item, localDir, remoteDir);
 
-						if (pr !=null){
+						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
 							result.setThumbUrl(pr.getThumbUrl());
 							result.setLocalImageUrl(pr.getLocalImageUrl());
@@ -352,6 +356,5 @@ public class UploadManager {
 					+ Arrays.toString(data) + "]";
 		}
 
-		
 	}
 }
