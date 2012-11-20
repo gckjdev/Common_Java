@@ -84,7 +84,7 @@ public class ChannelUserManager {
 	    	}
 	    	*/
 	    	
-	    	if (channel.isOpen()){	    	
+	    	if (channel.isOpen() && channel.getCloseFuture() == null){	    	
 		    	ChannelFuture closeFuture = channel.close();
 		    	closeFuture.await(1000);
 		    	if (closeFuture.isSuccess()){
