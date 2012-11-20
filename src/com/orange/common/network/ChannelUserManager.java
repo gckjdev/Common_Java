@@ -67,28 +67,40 @@ public class ChannelUserManager {
     		
 //    		logger.info("<removeChannel> "+channel.toString() + ChannelUtils.getChannelState(channel));
     		
-    		if (channel.isBound()){
-    			channel.unbind();
-    		}
+//    		if (channel.isBound()){
+//    			channel.unbind();
+//    		}
     		
+    		/*
 	    	if (channel.isConnected()){
-	    		channel.disconnect();
+	    		ChannelFuture disconnectFuture = channel.disconnect();
+	    		disconnectFuture.await(1000);
+		    	if (disconnectFuture.isSuccess()){
+					logger.info("<removeChannel> disconnect success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
+		    	}
+		    	else{
+		    		logger.info("<removeChannel> wait disconnect future time out, channel=" + channel.toString());
+		    	}	    		
 	    	}
+	    	*/
 	    	
-	    	ChannelFuture closeFuture = channel.close();
-	    	closeFuture.await(1000);
-	    	if (closeFuture.isSuccess()){
-	        	channelUserMap.remove(channel);    	
-				logger.info("<removeChannel> success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
-	    	}
-	    	else{
-	        	channelUserMap.remove(channel);    	
-	    		logger.info("<removeChannel> wait close future time out, channel=" + channel.toString());
+	    	if (channel.isOpen()){	    	
+		    	ChannelFuture closeFuture = channel.close();
+		    	closeFuture.await(1000);
+		    	if (closeFuture.isSuccess()){
+					logger.info("<removeChannel> close success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
+		    	}
+		    	else{
+		    		logger.info("<removeChannel> wait close future time out, channel=" + channel.toString());
+		    	}
 	    	}
 	    	
     	}
     	catch (Exception e){    	
     		logger.error("<removeChannel> channel="+channel.toString() + " catch exception = "+e.toString(), e);
+    	}
+    	finally{
+        	channelUserMap.remove(channel);    	    		
     	}
 		
     }
