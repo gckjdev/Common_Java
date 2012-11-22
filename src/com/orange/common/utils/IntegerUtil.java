@@ -97,7 +97,7 @@ public class IntegerUtil {
 	 * @param mask: 检查哪一部分，不检查的位必须置为0. 比如， 0XFF表示检查num的最低8位即可。
 	 * @param skip: 跳过前<skip>次。比如 skip为0, 表示跳过第0次，也就是返回第一次出现的位置，以此类推。
 	 * @param bitType: 要检查的位模式，是0，还是1。
-	 * @return： 见描述。返回-1表示失败。
+	 * @return： 最右边的位置为0, 向左一位为1, 以此类推。返回-1表示失败。
 	 */
 	public static int forPosition(int num, int mask, int skip, int bitType) {
 		
@@ -143,11 +143,11 @@ public class IntegerUtil {
 	 * @param bitType: 要检查的位模式，是0，还是1。
 	 * @return： 是就返回true; 不是就返回false。
 	 */
-	public static boolean testBit(int num, int position, int bitType) {
+	public static boolean testBit(long num, int position, int bitType) {
 		
 		// Java 中的int类型是确定的32位，
 		// 且由于position是从0开始计起，所以不能超过31.
-		if ( position > 31 ) {
+		if ( position > 63 ) {
 			return false;
 		}
 				
