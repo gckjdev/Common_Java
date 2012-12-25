@@ -13,7 +13,7 @@ import com.orange.common.urbanairship.ErrorCode;
 public class PushMessageApnsService extends BasicService {
 
 	final int badge;
-	final String alertMessage = null;
+	final String alertMessage;
 	final String sound;	
 	final String localizeKey;
 	final Collection<String>localizeValues;	
@@ -29,12 +29,26 @@ public class PushMessageApnsService extends BasicService {
 		
 		this.deviceToken = deviceToken;
 		this.badge = badge;
-//		this.alertMessage = alertMessage;
+		this.alertMessage = null;
 		this.sound = sound;
 		this.userInfo = userInfo;		
 		this.localizeKey = localizeKey;
 		this.localizeValues = localizeValues;
 	}
+	
+	public PushMessageApnsService(ApnsService service, String deviceToken, int badge,
+			String sound, String alertMessage) {
+		
+		super(service);
+		
+		this.deviceToken = deviceToken;
+		this.badge = badge;
+		this.alertMessage = alertMessage;
+		this.sound = sound;
+		this.userInfo = null;		
+		this.localizeKey = null;
+		this.localizeValues = null;
+	}	
 
 	@Override
 	String getPayload() {
