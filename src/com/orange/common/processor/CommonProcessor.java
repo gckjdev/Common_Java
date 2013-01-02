@@ -27,17 +27,15 @@ public abstract class CommonProcessor implements Runnable {
             	if (nowTime - startTime >= ALIVE_INTERVAL){
             		startTime = nowTime;
             		log.info("Processing thread alive, great :-)");
-            	}
+            	    }
             	
-                BasicProcessorRequest request = queue.take();
-                printRequest(request);
-                request.execute(this);
-            }
-            catch (Exception e) {
+               BasicProcessorRequest request = queue.take();
+               printRequest(request);
+               request.execute(this);
+             } catch (Exception e) {
                 log.error("Processor catch exception=" + e.toString(), e);
-            }
+                 }
         }
-
     }
 
     public boolean putRequest(BasicProcessorRequest request) {

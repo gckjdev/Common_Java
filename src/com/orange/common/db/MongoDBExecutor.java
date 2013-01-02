@@ -13,7 +13,7 @@ public abstract class MongoDBExecutor {
 		
 	final MongoDBClient[] mongoClientList;   
     
-	protected static final int EXECUTOR_POOL_NUM = 5;
+	public static final int EXECUTOR_POOL_NUM = 5;
 
 	CopyOnWriteArrayList<ExecutorService> executorList = new CopyOnWriteArrayList<ExecutorService>();
 	

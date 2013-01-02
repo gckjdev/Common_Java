@@ -59,4 +59,9 @@ public class ServerLog {
 		logger.error(getMessage(sessionId, " catch exception=".concat(e.toString())), e);						
 	}
 
+	
+	public static void fatal(int sessionId, String string, Exception e) {
+		logger.fatal(getMessage(sessionId, " catch exception=".concat(e.toString())), e);
+	}
+
 }
