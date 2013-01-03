@@ -12,6 +12,7 @@ import net.sf.json.JSONException;
 
 import org.apache.log4j.Logger;
 
+import com.orange.common.api.service.error.CommonErrorCode;
 import com.orange.common.cassandra.CassandraClient;
 import com.orange.common.mongodb.MongoDBClient;
 
