@@ -17,6 +17,8 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
+import com.mongodb.MongoOptions;
+import com.mongodb.ServerAddress;
 import com.orange.common.utils.StringUtil;
 
 public class MongoDBClient {
@@ -45,10 +47,11 @@ public class MongoDBClient {
 		this.db = db;
 	}
 
+	@Deprecated
 	public MongoDBClient(String serverAddress, String dbName, String userName,
 			String password) {
 
-		try {
+		try {			
 			this.mongo = new Mongo(serverAddress, 27017);
 		} catch (UnknownHostException e) {
 			e.printStackTrace(); // TODO
@@ -64,7 +67,10 @@ public class MongoDBClient {
 
 		String address = System.getProperty("mongodb.address");
 		String portStr = System.getProperty("mongodb.port");
+		String connectionPerHostStr = System.getProperty("mongodb.connectionPerHost");
+		
 		int port = 27017;
+		int connectionPerHost = 100;
 
 		if (address == null) {
 			address = "localhost";
@@ -72,9 +78,19 @@ public class MongoDBClient {
 		if (portStr != null) {
 			port = Integer.parseInt(portStr);
 		}
+		if (connectionPerHostStr != null){
+			connectionPerHost = Integer.parseInt(connectionPerHostStr);
+		}
 
 		try {
-			this.mongo = new Mongo(address, port);
+			ServerAddress serverAddress=new ServerAddress(address, port); 
+			
+			MongoOptions mongoOptions=new MongoOptions(); 
+			mongoOptions.connectionsPerHost = connectionPerHost;
+//			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 5;			
+			
+			this.mongo = new Mongo(serverAddress, mongoOptions);
+			
 		} catch (UnknownHostException e) {
 			log.error("<MongoDBClient> connect to DB server but catch UnknownHostException="+e.toString(), e);
 		} catch (MongoException e) {
