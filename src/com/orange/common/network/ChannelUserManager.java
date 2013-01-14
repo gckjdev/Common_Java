@@ -60,6 +60,10 @@ public class ChannelUserManager {
     
     public void removeChannel(Channel channel){
     	
+    	if (channel == null){
+    		return;
+    	}
+    	
     	try{    	
     		if (!channelUserMap.containsKey(channel)){
     			return;
@@ -84,17 +88,14 @@ public class ChannelUserManager {
 	    	}
 	    	*/
 	    	
-	    	if (channel.isOpen() && channel.getCloseFuture() == null){	    	
-		    	ChannelFuture closeFuture = channel.close();
-		    	closeFuture.await(1000);
-		    	if (closeFuture.isSuccess()){
-					logger.info("<removeChannel> close success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
-		    	}
-		    	else{
-		    		logger.info("<removeChannel> wait close future time out, channel=" + channel.toString());
-		    	}
+	    	ChannelFuture closeFuture = channel.close();
+	    	closeFuture.await(1000);
+	    	if (closeFuture.isSuccess()){
+				logger.info("<removeChannel> close success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
 	    	}
-	    	
+	    	else{
+	    		logger.info("<removeChannel> wait close future time out, channel=" + channel.toString());
+	    	}
     	}
     	catch (Exception e){    	
     		logger.error("<removeChannel> channel="+channel.toString() + " catch exception = "+e.toString(), e);
