@@ -70,7 +70,7 @@ public class MongoDBClient {
 		String connectionPerHostStr = System.getProperty("mongodb.connectionPerHost");
 		
 		int port = 27017;
-		int connectionPerHost = 100;
+		int connectionPerHost = 50;
 
 		if (address == null) {
 			address = "localhost";
@@ -87,9 +87,12 @@ public class MongoDBClient {
 			
 			MongoOptions mongoOptions=new MongoOptions(); 
 			mongoOptions.connectionsPerHost = connectionPerHost;
-//			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 5;			
+			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 50;			
 			
 			this.mongo = new Mongo(serverAddress, mongoOptions);
+			log.info("<MongoDBClient> mongo option="+this.mongo.getMongoOptions().toString()+
+					", connectionPerHost="+this.mongo.getMongoOptions().connectionsPerHost+
+					", threadsAllowedToBlockForConnectionMultiplier="+this.mongo.getMongoOptions().threadsAllowedToBlockForConnectionMultiplier);
 			
 		} catch (UnknownHostException e) {
 			log.error("<MongoDBClient> connect to DB server but catch UnknownHostException="+e.toString(), e);
