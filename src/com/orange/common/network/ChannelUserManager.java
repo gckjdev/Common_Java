@@ -68,26 +68,7 @@ public class ChannelUserManager {
     		if (!channelUserMap.containsKey(channel)){
     			return;
     		}
-    		
-//    		logger.info("<removeChannel> "+channel.toString() + ChannelUtils.getChannelState(channel));
-    		
-//    		if (channel.isBound()){
-//    			channel.unbind();
-//    		}
-    		
-    		/*
-	    	if (channel.isConnected()){
-	    		ChannelFuture disconnectFuture = channel.disconnect();
-	    		disconnectFuture.await(1000);
-		    	if (disconnectFuture.isSuccess()){
-					logger.info("<removeChannel> disconnect success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
-		    	}
-		    	else{
-		    		logger.info("<removeChannel> wait disconnect future time out, channel=" + channel.toString());
-		    	}	    		
-	    	}
-	    	*/
-	    	
+    			    	
 	    	ChannelFuture closeFuture = channel.close();
 	    	closeFuture.await(1000);
 	    	if (closeFuture.isSuccess()){
