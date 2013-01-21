@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
-import com.orange.common.network.utils.ChannelUtils;
+import com.orange.common.log.ServerLog;
 
 @ThreadSafe
 public class ChannelUserManager {
@@ -30,7 +30,7 @@ public class ChannelUserManager {
     } 
     
     public void addChannel(Channel channel){
-		logger.info("<addChannel> Channel " + channel.toString() + ", total " + channelUserMap.size());
+		ServerLog.info(0, "<addChannel> Channel " + channel.toString() + ", total " + channelUserMap.size());
 		CopyOnWriteArrayList<String> userList = new CopyOnWriteArrayList<String>();
 		channelUserMap.putIfAbsent(channel, userList);
     }
@@ -43,18 +43,18 @@ public class ChannelUserManager {
 			return;
 		}
 	
-		logger.info("<addUserIntoChannel> Add " + userId + " Into Channel " + channel.toString());
+		ServerLog.info(0, "<addUserIntoChannel> Add " + userId + " Into Channel " + channel.toString());
 		userList.add(userId);
     }
     
     public void removeUserFromChannel(Channel channel, String userId){
     	CopyOnWriteArrayList<String> userList = channelUserMap.get(channel);
     	if (userList == null){
-    		logger.info("<removeUserFromChannel> Remove " + userId + " From Channel " + channel.toString() + ", but channel not found");    		
+    		ServerLog.info(0, "<ChannelUserManager.removeUserFromChannel> Remove " + userId + " From Channel " + channel.toString() + ", but channel not found");    		
     		return;
     	}
 
-		logger.info("<removeUserFromChannel> Remove " + userId + " From Channel " + channel.toString());    		
+		ServerLog.info(0, "<ChannelUserManager.removeUserFromChannel> Remove " + userId + " From Channel " + channel.toString());    		
 		userList.remove(userId);
     }
     
@@ -72,16 +72,14 @@ public class ChannelUserManager {
 	    	ChannelFuture closeFuture = channel.close();
 	    	closeFuture.await(1000);
 	    	if (closeFuture.isSuccess()){
-				logger.info("<removeChannel> close success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
+				ServerLog.info(0, "<ChannelUserManager.removeChannel> Close success! channel=" + channel.toString() + ", before remove count = " + channelUserMap.size());
 	    	}
 	    	else{
-	    		logger.info("<removeChannel> wait close future time out, channel=" + channel.toString());
+	    		ServerLog.info(0, "<ChannelUserManager.removeChannel> Wait channel close future time out, channel=" + channel.toString());
 	    	}
-    	}
-    	catch (Exception e){    	
-    		logger.error("<removeChannel> channel="+channel.toString() + " catch exception = "+e.toString(), e);
-    	}
-    	finally{
+    	} catch (Exception e){    	
+    		logger.error("<ChannelUserManager.removeChannel> channel="+channel.toString() + " catch exception = "+e.toString(), e);
+    	} finally{
         	channelUserMap.remove(channel);    	    		
     	}
 		
@@ -102,7 +100,7 @@ public class ChannelUserManager {
 	public String findUserInChannel(Channel channel) {		
 		List<String> list = channelUserMap.get(channel);
 		if (list == null || list.size() == 0){
-			logger.error("<findUserInChannel> channel="+channel.toString() + " but no user???");
+			logger.error("<ChannelUserManager.findUserInChannel> channel="+channel.toString() + " but no user???");
 			return null;
 		}
 		
