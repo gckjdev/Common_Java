@@ -139,6 +139,8 @@ public abstract class CommonService {
 	// handle request, business logic implementation here
 	// need to set responseData and resultCode and return them as JSON string
 	public abstract void handleData();
+	
+	protected abstract byte[] gePBDataByErrorCode(int errorCode);
 
 	public String getResponseString() {
 	    String retString = "";

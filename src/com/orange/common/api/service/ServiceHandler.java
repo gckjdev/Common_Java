@@ -81,7 +81,7 @@ public class ServiceHandler {
 		try {
 
 			if (obj == null) {
-				sendResponseByErrorCode(response,
+				sendResponseByErrorCode(obj, response,
 						CommonErrorCode.ERROR_PARA_METHOD_NOT_FOUND, gzip, format);
 				return;
 			}
@@ -93,7 +93,7 @@ public class ServiceHandler {
 			obj.setDataFormat(format);
 			
 			if (!obj.validateSecurity(request)) {
-				sendResponseByErrorCode(response,
+				sendResponseByErrorCode(obj, response,
 						CommonErrorCode.ERROR_INVALID_SECURITY, gzip, format);
 				return;
 			}
@@ -101,7 +101,7 @@ public class ServiceHandler {
 			// common black user handling here, hard code for quick implementation
 			String userId = request.getParameter(CommonParameter.PARA_USER_ID);
 			if (obj.isBlackUser(userId)){
-				sendResponseByErrorCode(response,
+				sendResponseByErrorCode(obj, response,
 						CommonErrorCode.ERROR_BLACK_USER, gzip, format);
 				return;				
 			}
@@ -109,14 +109,14 @@ public class ServiceHandler {
 			// check black device
 			String deviceId = request.getParameter(CommonParameter.PARA_DEVICE_ID);
 			if (obj.isBlackDevice(deviceId)){
-				sendResponseByErrorCode(response,
+				sendResponseByErrorCode(obj, response,
 						CommonErrorCode.ERROR_BLACK_DEVICE, gzip, format);
 				return;				
 			}
 
 			// parse request parameters
 			if (!obj.setDataFromRequest(request)) {
-				sendResponseByErrorCode(response, obj.resultCode, gzip, format);
+				sendResponseByErrorCode(obj, response, obj.resultCode, gzip, format);
 				return;
 			}
 
@@ -299,20 +299,37 @@ public class ServiceHandler {
 		}
 	}
 
-	void sendResponseByErrorCode(HttpServletResponse response, int errorCode, boolean gzip, String responseFormat) {
-		if (responseFormat.equals(CommonParameter.PROTOCOL_BUFFER)){
-			sendResponse(response, errorCode);
+	void sendResponseByErrorCode(CommonService serviceObject, HttpServletResponse response, int errorCode, boolean gzip, String responseFormat) {
+		log.info("<sendResponseByErrorCode> error="+errorCode);
+		if (serviceObject == null){
+			if (responseFormat.equals(CommonParameter.PROTOCOL_BUFFER)){
+				sendResponse(response, errorCode);
+			}
+			else{
+				String resultString = CommonErrorCode.getJSONByErrorCode(errorCode);
+				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip);
+			}
 		}
 		else{
-			String resultString = CommonErrorCode.getJSONByErrorCode(errorCode);
-			sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip);
+			if (responseFormat.equals(CommonParameter.PROTOCOL_BUFFER)){
+				byte[] data = serviceObject.gePBDataByErrorCode(errorCode);
+				if (data != null)
+					sendResponse(response, data, CommonParameter.APPLICATION_JSON, true);
+				else
+					sendResponse(response, errorCode);
+			}
+			else{
+				String resultString = CommonErrorCode.getJSONByErrorCode(errorCode);
+				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip);
+			}			
 		}
 	}
+	
+	
 
 	private void sendResponse(HttpServletResponse response, int errorCode) {
         try {
-            response.setStatus(errorCode);
-            response.getWriter().write("");
+            response.setStatus(404);
 			response.getWriter().flush();
 		} catch (Exception e) {
 			log.error("sendResponse, catch exception=" + e.toString(), e);			
