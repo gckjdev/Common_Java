@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 
@@ -19,6 +20,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.MongoOptions;
 import com.mongodb.ServerAddress;
+import com.orange.common.log.ServerLog;
 import com.orange.common.utils.StringUtil;
 
 public class MongoDBClient {
@@ -69,6 +71,7 @@ public class MongoDBClient {
 		String portStr = System.getProperty("mongodb.port");
 		String connectionPerHostStr = System.getProperty("mongodb.connectionPerHost");
 		
+				
 		int port = 27017;
 		int connectionPerHost = 50;
 
@@ -101,7 +104,22 @@ public class MongoDBClient {
 		}
 
 		this.db = mongo.getDB(dbName);
-		return;
+		
+		String plainAuth = System.getProperty("mongodb.plain_auth");
+		String commandLineUserName = System.getProperty("mongodb.user");
+		String commandLinePasswd = System.getProperty("mongodb.password");
+		if ( commandLineUserName == null && commandLinePasswd == null ) {
+			return;
+		}
+		
+		if ( plainAuth != null && plainAuth.equals("1")) {
+			db.authenticate(commandLineUserName, commandLinePasswd.toCharArray());
+		} else {
+			String user = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLineUserName)), "Alpha");
+			String passwd = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLinePasswd)), "Gamma");
+			db.authenticate(user, passwd.toCharArray());
+		}
+
 	}
 	
 	public boolean insert(String tableName, DBObject docObject) {
