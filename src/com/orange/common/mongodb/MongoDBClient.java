@@ -109,17 +109,25 @@ public class MongoDBClient {
 		String commandLineUserName = System.getProperty("mongodb.user");
 		String commandLinePasswd = System.getProperty("mongodb.password");
 		if ( commandLineUserName == null && commandLinePasswd == null ) {
+			log.info("<MongoDBClient> access without user name and password");
 			return;
 		}
 		
+		boolean authResult = false;
 		if ( plainAuth != null && plainAuth.equals("1")) {
-			db.authenticate(commandLineUserName, commandLinePasswd.toCharArray());
+			authResult = db.authenticate(commandLineUserName, commandLinePasswd.toCharArray());
 		} else {
 			String user = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLineUserName)), "Alpha");
 			String passwd = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLinePasswd)), "Gamma");
-			db.authenticate(user, passwd.toCharArray());
+			authResult = db.authenticate(user, passwd.toCharArray());
 		}
-
+		
+		if (authResult){
+			log.info("<MongoDBClient> authentication successfully");
+		}
+		else{
+			log.error("<MongoDBClient> authentication failure, please check user name and password settings");
+		}
 	}
 	
 	public boolean insert(String tableName, DBObject docObject) {
