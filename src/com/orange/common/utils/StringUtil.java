@@ -246,7 +246,7 @@ public class StringUtil {
 		// 使用sault,对目标字符串进行打乱
 		String saultedUserName = intersetTwoStrings(userName, saultForUserName);
 		String saultedPassWord = intersetTwoStrings(passWord, saultForPassWord);
-		ServerLog.info(0, "2. Saulted: sault for userName : "+saultedUserName+", saultedUserName = "+saultedUserName+";  sault for password : "+saultedPassWord+", saultedPassWord = "+saultedPassWord);
+		ServerLog.info(0, "2. Saulted: sault for userName : "+saultForUserName+", saultedUserName = "+saultedUserName+";  sault for password : "+saultForPassWord+", saultedPassWord = "+saultedPassWord);
 		
 		// 加密打乱后的字符串, 得到密文
 		String encodedSaultedUserName = Base64.encodeBase64String(saultedUserName.getBytes());
