@@ -2,6 +2,7 @@ package com.orange.common.mongodb;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class MongoDBClient {
 	public MongoDBClient(String serverAddress, String dbName, String userName,
 			String password) {
 
-		try {			
+		try {
 			this.mongo = new Mongo(serverAddress, 27017);
 		} catch (UnknownHostException e) {
 			e.printStackTrace(); // TODO
@@ -69,9 +70,9 @@ public class MongoDBClient {
 
 		String address = System.getProperty("mongodb.address");
 		String portStr = System.getProperty("mongodb.port");
-		String connectionPerHostStr = System.getProperty("mongodb.connectionPerHost");
-		
-				
+		String connectionPerHostStr = System
+				.getProperty("mongodb.connectionPerHost");
+
 		int port = 27017;
 		int connectionPerHost = 50;
 
@@ -81,55 +82,66 @@ public class MongoDBClient {
 		if (portStr != null) {
 			port = Integer.parseInt(portStr);
 		}
-		if (connectionPerHostStr != null){
+		if (connectionPerHostStr != null) {
 			connectionPerHost = Integer.parseInt(connectionPerHostStr);
 		}
 
 		try {
-			ServerAddress serverAddress=new ServerAddress(address, port); 
-			
-			MongoOptions mongoOptions=new MongoOptions(); 
+			ServerAddress serverAddress = new ServerAddress(address, port);
+
+			MongoOptions mongoOptions = new MongoOptions();
 			mongoOptions.connectionsPerHost = connectionPerHost;
-			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 50;			
-			
+			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 50;
+
 			this.mongo = new Mongo(serverAddress, mongoOptions);
-			log.info("<MongoDBClient> mongo option="+this.mongo.getMongoOptions().toString()+
-					", connectionPerHost="+this.mongo.getMongoOptions().connectionsPerHost+
-					", threadsAllowedToBlockForConnectionMultiplier="+this.mongo.getMongoOptions().threadsAllowedToBlockForConnectionMultiplier);
-			
+			log
+					.info("<MongoDBClient> mongo option="
+							+ this.mongo.getMongoOptions().toString()
+							+ ", connectionPerHost="
+							+ this.mongo.getMongoOptions().connectionsPerHost
+							+ ", threadsAllowedToBlockForConnectionMultiplier="
+							+ this.mongo.getMongoOptions().threadsAllowedToBlockForConnectionMultiplier);
+
 		} catch (UnknownHostException e) {
-			log.error("<MongoDBClient> connect to DB server but catch UnknownHostException="+e.toString(), e);
+			log.error(
+					"<MongoDBClient> connect to DB server but catch UnknownHostException="
+							+ e.toString(), e);
 		} catch (MongoException e) {
-			log.error("<MongoDBClient> connect to DB server but catch MongoException="+e.toString(), e);
+			log.error(
+					"<MongoDBClient> connect to DB server but catch MongoException="
+							+ e.toString(), e);
 		}
 
 		this.db = mongo.getDB(dbName);
-		
+
 		String plainAuth = System.getProperty("mongodb.plain_auth");
 		String commandLineUserName = System.getProperty("mongodb.user");
 		String commandLinePasswd = System.getProperty("mongodb.password");
-		if ( commandLineUserName == null && commandLinePasswd == null ) {
+		if (commandLineUserName == null && commandLinePasswd == null) {
 			log.info("<MongoDBClient> access without user name and password");
 			return;
 		}
-		
+
 		boolean authResult = false;
-		if ( plainAuth != null && plainAuth.equals("1")) {
-			authResult = db.authenticate(commandLineUserName, commandLinePasswd.toCharArray());
+		if (plainAuth != null && plainAuth.equals("1")) {
+			authResult = db.authenticate(commandLineUserName, commandLinePasswd
+					.toCharArray());
 		} else {
-			String user = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLineUserName)), "Alpha");
-			String passwd = StringUtil.deIntersetTwoStrings(new String(Base64.decodeBase64(commandLinePasswd)), "Gamma");
+			String user = StringUtil.deIntersetTwoStrings(new String(Base64
+					.decodeBase64(commandLineUserName)), "Alpha");
+			String passwd = StringUtil.deIntersetTwoStrings(new String(Base64
+					.decodeBase64(commandLinePasswd)), "Gamma");
 			authResult = db.authenticate(user, passwd.toCharArray());
 		}
-		
-		if (authResult){
+
+		if (authResult) {
 			log.info("<MongoDBClient> authentication successfully");
-		}
-		else{
-			log.error("<MongoDBClient> authentication failure, please check user name and password settings");
+		} else {
+			log
+					.error("<MongoDBClient> authentication failure, please check user name and password settings");
 		}
 	}
-	
+
 	public boolean insert(String tableName, DBObject docObject) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
@@ -217,7 +229,7 @@ public class MongoDBClient {
 		return collection.findAndModify(query, null, null, false, update, true,
 				false);
 	}
-	
+
 	// returnNew = true, upsert = true
 	public DBObject findAndModifyUpsert(String tableName, DBObject query,
 			DBObject update) {
@@ -231,7 +243,6 @@ public class MongoDBClient {
 				true);
 	}
 
-	
 	public void updateOne(String tableName, DBObject query, DBObject update) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
@@ -328,21 +339,23 @@ public class MongoDBClient {
 		return collection.findOne(query);
 	}
 
-	public DBObject findOne(String tableName, DBObject query, DBObject returnFields) {
+	public DBObject findOne(String tableName, DBObject query,
+			DBObject returnFields) {
 		if (query == null)
 			return null;
 
-		log.info("<findOne>:query = "+query+", returnFields = "+returnFields);
-		
+		log.info("<findOne>:query = " + query + ", returnFields = "
+				+ returnFields);
+
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
 		return collection.findOne(query, returnFields);
 	}
 
-	
 	public DBObject findOneWithArrayLimit(String tableName, DBObject query,
-			String arrayField, int offset, int limit, HashSet<String>returnFields) {
+			String arrayField, int offset, int limit,
+			HashSet<String> returnFields) {
 		if (query == null)
 			return null;
 
@@ -400,7 +413,7 @@ public class MongoDBClient {
 		collection.findAndRemove(query);
 		return true;
 	}
-	
+
 	public boolean remove(String tableName, DBObject query) {
 		if (query == null)
 			return false;
@@ -451,24 +464,24 @@ public class MongoDBClient {
 
 		return cursor;
 	}
-	
-	public DBCursor find(String tableName, DBObject query,DBObject returnFields, DBObject orderBy,
-			int offset, int limit) {
+
+	public DBCursor find(String tableName, DBObject query,
+			DBObject returnFields, DBObject orderBy, int offset, int limit) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
 
 		DBCursor cursor = null;
 		if (orderBy == null) {
-			cursor = collection.find(query,returnFields).skip(offset).limit(limit);
-		} else {
-			cursor = collection.find(query,returnFields).sort(orderBy).skip(offset).limit(
+			cursor = collection.find(query, returnFields).skip(offset).limit(
 					limit);
+		} else {
+			cursor = collection.find(query, returnFields).sort(orderBy).skip(
+					offset).limit(limit);
 		}
 
 		return cursor;
 	}
-	
 
 	public DBCursor findByIds(String tableName, String fieldName,
 			List<ObjectId> valueList) {
@@ -558,13 +571,12 @@ public class MongoDBClient {
 		in.put("$in", valueList);
 		DBObject query = new BasicDBObject();
 		query.put(fieldName, in);
-//		log.info("map search = " + query);
+		// log.info("map search = " + query);
 		return collection.find(query).skip(offset).limit(count);
 	}
 
-
 	public DBCursor findByFieldInValues(String tableName, String fieldName,
-			List<Object> valueList,DBObject returnFields,  int offset, int count) {
+			List<Object> valueList, DBObject returnFields, int offset, int count) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
@@ -572,12 +584,12 @@ public class MongoDBClient {
 		in.put("$in", valueList);
 		DBObject query = new BasicDBObject();
 		query.put(fieldName, in);
-//		log.info("map search = " + query);
-		return collection.find(query,returnFields).skip(offset).limit(count);
+		// log.info("map search = " + query);
+		return collection.find(query, returnFields).skip(offset).limit(count);
 	}
 
 	public DBCursor findByFieldInValues(String tableName, String fieldName,
-			List<Object> valueList,DBObject returnFields) {
+			Collection<?> valueList, DBObject returnFields) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
@@ -585,11 +597,10 @@ public class MongoDBClient {
 		in.put("$in", valueList);
 		DBObject query = new BasicDBObject();
 		query.put(fieldName, in);
-//		log.info("map search = " + query);
-		return collection.find(query,returnFields);
+		// log.info("map search = " + query);
+		return collection.find(query, returnFields);
 	}
 
-	
 	public DBCursor findByFieldsInValues(String tableName,
 			Map<String, List<Object>> fieldValueMap, int offset, int limit) {
 		DBCollection collection = db.getCollection(tableName);
@@ -611,7 +622,7 @@ public class MongoDBClient {
 		}
 		return collection.find(query).skip(offset).limit(limit);
 	}
-	
+
 	public boolean inc(String tableName, String keyFieldName,
 			Object keyFieldValue, String counterName, int counterValue) {
 
@@ -653,7 +664,8 @@ public class MongoDBClient {
 		return collection.findOne(query);
 	}
 
-	public DBObject findOne(String tableName, String fieldName, Object value, DBObject returnFields) {
+	public DBObject findOne(String tableName, String fieldName, Object value,
+			DBObject returnFields) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
@@ -663,7 +675,6 @@ public class MongoDBClient {
 		return collection.findOne(query, returnFields);
 	}
 
-	
 	public DBObject findOneByObjectId(String tableName, String value) {
 		return this.findOne(tableName, "_id", new ObjectId(value));
 	}
@@ -687,13 +698,12 @@ public class MongoDBClient {
 		if (collection == null)
 			return null;
 		if (order != null) {
-			return collection.find().sort(order);	
+			return collection.find().sort(order);
 		}
 		return collection.find();
 	}
 
-	
-	public DBCursor find(String tableName, String fieldName, String fieldValue) {
+	public DBCursor find(String tableName, String fieldName, Object fieldValue) {
 
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
@@ -722,7 +732,7 @@ public class MongoDBClient {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
-		return collection.find(query,returnFields);
+		return collection.find(query, returnFields);
 	}
 
 }
