@@ -19,6 +19,7 @@ import net.sf.json.JSONObject;
 import com.orange.common.api.service.error.CommonErrorCode;
 import com.orange.common.cassandra.CassandraClient;
 import com.orange.common.mongodb.MongoDBClient;
+import com.orange.common.service.BlackUserService;
 import com.orange.common.utils.StringUtil;
 
 public abstract class CommonService {
@@ -254,6 +255,10 @@ public abstract class CommonService {
 	}
 
 	public boolean isBlackDevice(String deviceId) {
+		
+		return BlackUserService.getInstance().isBlackDevice(deviceId);
+		
+		/*
 		if (StringUtil.isEmpty(deviceId)){
 			return false;
 		}		
@@ -263,9 +268,14 @@ public abstract class CommonService {
 		}
 		
 		return false;		
+		*/
 	}
 	
 	public boolean isBlackUser(String userId) {
+		
+		return BlackUserService.getInstance().isBlackUser(userId);
+		
+		/*
 		if (StringUtil.isEmpty(userId))
 			return false;
 		
@@ -275,6 +285,7 @@ public abstract class CommonService {
 		}
 
 		return false;
+		*/
 	}
 
 	public void setSecureMethod(boolean isSecureMethod) {
