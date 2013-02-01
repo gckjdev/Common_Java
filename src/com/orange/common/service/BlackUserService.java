@@ -49,16 +49,21 @@ public class BlackUserService {
 			return;
 		}
 		
-		while (cursor.hasNext()){
-			DBObject obj = cursor.next();
-			if (obj != null){
-				ObjectId id = (ObjectId)obj.get("_id");
-				String black = id.toStringMongod();
-				blackDevices.add(black);
-				log.info("Add black device "+black);
-			}	
+		try{
+			while (cursor.hasNext()){
+				DBObject obj = cursor.next();
+				if (obj != null){
+					String id = (String)obj.get("_id");
+					blackDevices.add(id);
+					log.info("Add black device "+id);
+				}	
+			}
+			log.info("Loading black device, total "+blackDevices.size());			
 		}
-		log.info("Loading black device, total "+blackDevices.size());			
+		catch(Exception e){
+			log.error("Loading black device but catch exception="+e.toString(), e);			
+		}
+		
 
 		cursor.close();
 	}
@@ -77,16 +82,21 @@ public class BlackUserService {
 			return;
 		}
 		
-		while (cursor.hasNext()){
-			DBObject obj = cursor.next();
-			if (obj != null){
-				ObjectId id = (ObjectId)obj.get("_id");
-				String black = id.toStringMongod();
-				blackUsers.add(id.toStringMongod());
-				log.info("Add black user "+black);
-			}	
+		try{
+			while (cursor.hasNext()){
+				DBObject obj = cursor.next();
+				if (obj != null){
+					ObjectId id = (ObjectId)obj.get("_id");
+					String black = id.toStringMongod();
+					blackUsers.add(id.toStringMongod());
+					log.info("Add black user "+black);
+				}	
+			}
+			log.info("Loading black user, total "+blackUsers.size());
 		}
-		log.info("Loading black user, total "+blackUsers.size());			
+		catch(Exception e){
+			log.error("Loading black user but catch exception="+e.toString(), e);			
+		}
 		
 		cursor.close();
 	}
