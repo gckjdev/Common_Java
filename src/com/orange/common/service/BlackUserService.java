@@ -101,20 +101,26 @@ public class BlackUserService {
 		cursor.close();
 	}
 	
+	private void executeLoad(final MongoDBClient mongoClient){
+		log.info("Schedule Load Black User & Device");
+		hasLoadDevices = false;
+		hasLoadUsers = false;
+		loadBlackDevice(mongoClient);
+		loadBlackUser(mongoClient);	
+	}
+	
 	public void load(final MongoDBClient mongoClient){
+		
+		executeLoad(mongoClient);
 		
 		scheduleService.scheduleWithFixedDelay(new  Runnable(){
 
 			@Override
 			public void run() {		
-				log.info("Schedule Load Black User & Device");
-				hasLoadDevices = false;
-				hasLoadUsers = false;
-				loadBlackDevice(mongoClient);
-				loadBlackUser(mongoClient);				
+				executeLoad(mongoClient);
 			}
 			
-		}, 0, 5, TimeUnit.MINUTES);
+		}, 5, 5, TimeUnit.MINUTES);
 	}
 	
 	public static BlackUserService getInstance() { 						

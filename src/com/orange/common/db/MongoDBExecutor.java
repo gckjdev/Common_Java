@@ -11,7 +11,9 @@ public abstract class MongoDBExecutor {
 
 	public static final String DB_NAME = "game";
 		
-	final MongoDBClient[] mongoClientList;   
+//	final MongoDBClient[] mongoClientList;   
+	
+	final MongoDBClient mongoClient;  // mongo client is a share DB pool, it's thread safe and don't need to have a list
     
 	public static final int EXECUTOR_POOL_NUM = 5;
 
@@ -21,6 +23,9 @@ public abstract class MongoDBExecutor {
 	
 	public MongoDBExecutor(){		
 		
+		mongoClient = new MongoDBClient(getDBName());
+		
+		/* remove by Benson 2013-02-03
 		mongoClientList = new MongoDBClient[EXECUTOR_POOL_NUM];
 		
     	for (int i=0; i<EXECUTOR_POOL_NUM; i++){
@@ -28,6 +33,7 @@ public abstract class MongoDBExecutor {
     		ExecutorService executor = Executors.newSingleThreadExecutor();
     		executorList.add(executor);
     	}
+    	*/
 	} 	    
     
     public void executeDBRequest(final int sessionId, Runnable runnable){
@@ -41,7 +47,6 @@ public abstract class MongoDBExecutor {
 	}
     
     public MongoDBClient getMongoDBClient(int sessionId){
-    	int index = sessionId % EXECUTOR_POOL_NUM;
-    	return mongoClientList[index];
+    	return mongoClient;
     }
 }

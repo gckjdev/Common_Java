@@ -74,7 +74,7 @@ public class MongoDBClient {
 				.getProperty("mongodb.connectionPerHost");
 
 		int port = 27017;
-		int connectionPerHost = 50;
+		int connectionPerHost = 200;
 
 		if (address == null) {
 			address = "localhost";
@@ -91,7 +91,10 @@ public class MongoDBClient {
 
 			MongoOptions mongoOptions = new MongoOptions();
 			mongoOptions.connectionsPerHost = connectionPerHost;
-			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 50;
+			mongoOptions.threadsAllowedToBlockForConnectionMultiplier = 5;
+			mongoOptions.maxWaitTime = 30*1000; 		// 30 seconds for thread block wait
+//			mongoOptions.connectTimeout = 30*1000;
+//			mongoOptions.socketTimeout = 60*1000;			
 
 			this.mongo = new Mongo(serverAddress, mongoOptions);
 			log

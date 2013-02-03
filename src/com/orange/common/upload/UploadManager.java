@@ -128,7 +128,7 @@ public class UploadManager {
 		String httpPath = "";
 		String filename = "";
 
-		InputStream stream;
+		InputStream stream = null;
 		try {
 			stream = item.openStream();
 
@@ -143,6 +143,7 @@ public class UploadManager {
 				byteArray.add(tempByte);
 			} while (tempByte != -1);
 			stream.close();
+			stream = null;
 
 			int size = byteArray.size();
 			log.info("<uploadFile> total " + size + " bytes read");
@@ -153,14 +154,13 @@ public class UploadManager {
 			for (Integer tByte : byteArray) {
 				bytes[i++] = tByte.byteValue();
 			}
-
+			
 			// generate direcotry
 			String timeDir = getTimeFilePath();
 			String dir = localDir + timeDir;
 			FileUtils.createDir(dir);
 
 			// generate file name
-
 			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis()
 					.toString();
 			String largeImageName = timeFileString + ".jpg";
@@ -203,6 +203,13 @@ public class UploadManager {
 
 		} catch (Exception e) {
 			log.error("error: <saveImage> error, catch exception:", e);
+			if (stream != null){
+				try {
+					stream.close();
+				} catch (IOException e1) {
+					log.error("error: <saveImage> close stream error", e1);
+				}
+			}
 			return null;
 		}
 
