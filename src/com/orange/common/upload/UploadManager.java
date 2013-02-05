@@ -129,6 +129,7 @@ public class UploadManager {
 		String filename = "";
 
 		InputStream stream = null;
+		FileOutputStream fw = null;
 		try {
 			stream = item.openStream();
 
@@ -173,9 +174,10 @@ public class UploadManager {
 			// write to file
 			log.info("<uploadFile> write to file=" + localPath
 					+ ", http path = " + httpPath);
-			FileOutputStream fw = new FileOutputStream(localPath);
+			fw = new FileOutputStream(localPath);
 			fw.write(bytes);
 			fw.close();
+			fw = null;
 
 			// create thumb image
 			String thumbImageName = timeFileString + "_m.jpg";
@@ -210,6 +212,15 @@ public class UploadManager {
 					log.error("error: <saveImage> close stream error", e1);
 				}
 			}
+			
+			if (fw != null){
+				try {
+					fw.close();
+				} catch (IOException e1) {
+					log.error("error: <saveImage> close file stream error", e1);
+				}
+			}
+			
 			return null;
 		}
 

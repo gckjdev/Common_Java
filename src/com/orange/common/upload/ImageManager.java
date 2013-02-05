@@ -62,14 +62,21 @@ public class ImageManager {
 	private static void writeJpeg(BufferedImage image, String destFile, float quality) throws IOException {
 	    ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
 	    ImageWriteParam param = writer.getDefaultWriteParam();
-	    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-	    param.setCompressionQuality(quality);
 	    FileImageOutputStream output = new FileImageOutputStream(new File(destFile));
-	    writer.setOutput(output);
-	    IIOImage iioImage = new IIOImage(image, null, null);
-	    writer.write(null, iioImage, param);
-	    writer.dispose();
-	    output.close();
+	    try{
+		    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+		    param.setCompressionQuality(quality);
+		    writer.setOutput(output);
+		    IIOImage iioImage = new IIOImage(image, null, null);
+		    writer.write(null, iioImage, param);
+	    }
+	    catch (Exception e){
+	    	e.printStackTrace();
+	    }
+	    finally{
+	    	writer.dispose();
+	    	output.close();
+	    }
 	}
 	
 	/**
