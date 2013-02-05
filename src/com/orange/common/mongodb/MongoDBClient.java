@@ -77,7 +77,7 @@ public class MongoDBClient {
 		int connectionPerHost = 200;
 
 		if (address == null) {
-			address = "localhost";
+			address = "127.0.0.1";
 		}
 		if (portStr != null) {
 			port = Integer.parseInt(portStr);
