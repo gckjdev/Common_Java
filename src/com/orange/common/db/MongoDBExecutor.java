@@ -25,15 +25,15 @@ public abstract class MongoDBExecutor {
 		
 		mongoClient = new MongoDBClient(getDBName());
 		
-		/* remove by Benson 2013-02-03
-		mongoClientList = new MongoDBClient[EXECUTOR_POOL_NUM];
+		//remove by Benson 2013-02-03
+//		mongoClientList = new MongoDBClient[EXECUTOR_POOL_NUM];
 		
     	for (int i=0; i<EXECUTOR_POOL_NUM; i++){
-    		mongoClientList[i] = new MongoDBClient(getDBName());
+//    		mongoClientList[i] = new MongoDBClient(getDBName());
     		ExecutorService executor = Executors.newSingleThreadExecutor();
     		executorList.add(executor);
     	}
-    	*/
+    	
 	} 	    
     
     public void executeDBRequest(final int sessionId, Runnable runnable){
