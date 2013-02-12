@@ -50,6 +50,7 @@ public class BlackUserService {
 		}
 		
 		try{
+			blackDevices.clear();
 			while (cursor.hasNext()){
 				DBObject obj = cursor.next();
 				if (obj != null){
@@ -83,6 +84,7 @@ public class BlackUserService {
 		}
 		
 		try{
+			blackUsers.clear();
 			while (cursor.hasNext()){
 				DBObject obj = cursor.next();
 				if (obj != null){
