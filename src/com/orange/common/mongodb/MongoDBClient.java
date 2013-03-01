@@ -256,6 +256,17 @@ public class MongoDBClient {
 		return collection.findAndModify(query, null, null, false, update, true,
 				false);
 	}
+	
+	// returnNew = true
+	public DBObject findAndModify(String tableName, DBObject query,
+			DBObject update, DBObject fields) {
+		DBCollection collection = db.getCollection(tableName);
+		if (collection == null)
+			return null;
+
+		return collection.findAndModify(query, fields, null, false, update, true,
+				false);
+	}	
 
 	// returnNew = true, upsert = true
 	public DBObject findAndModifyUpsert(String tableName, DBObject query,
