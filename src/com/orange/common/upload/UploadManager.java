@@ -1,5 +1,7 @@
 package com.orange.common.upload;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +23,12 @@ import org.apache.log4j.Logger;
 
 import com.orange.common.api.service.CommonService;
 import com.orange.common.utils.FileUtils;
+import com.orange.common.utils.ZipUtil;
 
 public class UploadManager {
 
 	static final Logger log = Logger.getLogger(UploadManager.class.getName());
+	public static final String DEFAULT_ZIP_FILE_NAME = "data";
 	static String ENCODING_UTF8 = "UTF-8";
 
 	public static UploadFileResult uploadFile(HttpServletRequest request,
@@ -122,6 +126,13 @@ public class UploadManager {
 		}
 	}
 
+	private static String createTimeBasedDir(String topDir){
+		String timeDir = getTimeFilePath();
+		String dir = topDir + timeDir;
+		FileUtils.createDir(dir);
+		return dir;
+	}
+	
 	private static ParseResult saveImage(FileItemStream item, String localDir,
 			String remoteDir) {
 		String localPath = "";
@@ -160,11 +171,11 @@ public class UploadManager {
 			String timeDir = getTimeFilePath();
 			String dir = localDir + timeDir;
 			FileUtils.createDir(dir);
-
+			
 			// generate file name
-			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis()
-					.toString();
+			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
 			String largeImageName = timeFileString + ".jpg";
+
 			// construction path and write file
 			localPath = dir + "/" + largeImageName;
 
@@ -227,8 +238,16 @@ public class UploadManager {
 	}
 
 	public static ParseResult getFormDataAndSaveImage(
-			HttpServletRequest request, String dataFieldName,
-			String imageFieldName, String localDir, String remoteDir) {
+			HttpServletRequest request, 
+			String dataFieldName,
+			String imageFieldName, 
+			String localImageDir, 
+			String remoteImageDir,
+			boolean isReturnByteData,
+			boolean isDataZip,
+			boolean isDataCompressed, 
+			String localDataDir,
+			String remoteDataDir) {
 		try {
 			ParseResult result = new ParseResult();
 			request.setCharacterEncoding(ENCODING_UTF8);
@@ -242,8 +261,7 @@ public class UploadManager {
 
 			FileItemIterator iter = upload.getItemIterator(request);
 			if (iter == null) {
-				log
-						.info("<getFormDataAndSaveImage> the item iterator is null.");
+				log.info("<getFormDataAndSaveImage> the item iterator is null.");
 				return null;
 			}
 
@@ -254,15 +272,51 @@ public class UploadManager {
 				if (!item.isFormField()) {
 					if (name != null && dataFieldName != null
 							&& name.equalsIgnoreCase(dataFieldName)) {
-						log
-								.info("<getFormDataAndSaveImage> draw data file detected.");
-						byte[] data = CommonService.readPostData(stream);
-						result.setData(data);
+						
+						log.info("<getFormDataAndSaveImage> data file detected "+dataFieldName);
+						if (isReturnByteData){
+							byte[] data = CommonService.readPostData(stream);
+							result.setData(data);
+						}
+						else{
+							String timeDir = getTimeFilePath();
+							String dir = localDataDir + timeDir;
+							FileUtils.createDir(dir);
+							
+							String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+							String zipFilePath = null;
+							if (isDataCompressed){
+								zipFilePath = dir+"/"+timeFileString+"_c.zip";
+							}
+							else{
+								zipFilePath = dir+"/"+timeFileString+".zip";								
+							}
+							
+							String zipFileName = DEFAULT_ZIP_FILE_NAME;			// IMPORTANT, THIS MUST ALIGN WITH CLIENT
+							int dataLen = 0;
+							
+							if (isDataZip){
+								// write data as zip file directly
+								dataLen = writeToFile(zipFilePath, stream);
+							}
+							else{
+								// write data and create zip file
+								dataLen = ZipUtil.createZipFile(zipFilePath, zipFileName, stream);
+							}
+							
+							String localZipFileUrl = timeDir + "/" + timeFileString+".zip"; 
+							String remoteZipFileUrl = remoteDataDir + localZipFileUrl;
+							
+							result.setDataLen(dataLen);
+							result.setLocalZipFileUrl(localZipFileUrl);
+							result.setRemoteZipFileUrl(remoteZipFileUrl);
+						}
+						
 					} else if (name != null
 							&& name.equalsIgnoreCase(imageFieldName)) {
 						log
 								.info("<getFormDataAndSaveImage> image data file detected.");
-						ParseResult pr = saveImage(item, localDir, remoteDir);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -283,17 +337,92 @@ public class UploadManager {
 
 	}
 
+	private static int writeToFile(String filePath, InputStream stream) {
+
+		int BUFFER = 2048;
+		byte data[] = new byte[BUFFER];
+		int dataLen = 0;
+		
+		BufferedInputStream origin = null;
+
+		FileOutputStream fw = null;
+		BufferedOutputStream out = null;
+		
+		boolean result = true;
+		
+		try {
+			fw = new FileOutputStream(filePath);
+			out = new BufferedOutputStream(fw);
+			
+			origin = new BufferedInputStream(stream, BUFFER);  
+			int count = -1;  
+			int totalSize = 0;
+	        while ((count = origin.read(data, 0, BUFFER)) != -1) {  
+	        	totalSize += count;
+	        	out.write(data, 0, count);  
+	        }  			
+
+			log.info("<writeToFile> total " + totalSize + " bytes read, write to "+filePath+" success");
+			dataLen = totalSize;
+		} catch (Exception e) {
+			log.error("<writeToFile> error, catch exception:", e);
+			result = false;
+		}
+		finally{
+			if (stream != null){
+				try {
+					stream.close();
+				} catch (IOException e1) {
+					log.error("<writeToFile> close stream error", e1);
+				}
+			}
+			
+			if (fw != null){
+				try {
+					fw.close();
+				} catch (IOException e1) {
+					log.error("<writeToFile> close file stream error", e1);
+				}
+			}
+			
+			try {
+				if (origin != null){
+					origin.close();					
+				}
+			} catch (IOException e) {
+				log.error("<writeToFile> close stream error", e);
+			}
+			
+			try {
+				if (out != null){
+					out.close();
+				}
+			} catch (IOException e) {
+				log.error("<writeToFile> close stream error", e);
+			}			
+		}		
+		
+		return dataLen;
+	}
+
 	private static String getTimeFileName(String filename) {
 		return TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString() + ".jpg";
 	}
 
 	private static String getTimeFilePath() {
 		Date now = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
-		String datePath = formatter.format(now);
-		return datePath;
+		return getTimeFilePath(now);
+//		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+//		String datePath = formatter.format(now);
+//		return datePath;
 	}
 
+	public static String getTimeFilePath(Date date) {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		String datePath = formatter.format(date);
+		return datePath;
+	}	
+	
 	// Create a progress listener
 	ProgressListener progressListener = new ProgressListener() {
 		public void update(long pBytesRead, long pContentLength, int pItems) {
@@ -313,8 +442,20 @@ public class UploadManager {
 		private String thumbUrl;
 		private String localImageUrl;
 		private String localThumbUrl;
+		
+		private String localZipFileUrl;
+		private String remoteZipFileUrl;
 
 		private byte[] data;
+		private int dataLen;
+
+		public int getDataLen() {
+			return dataLen;
+		}
+
+		public void setDataLen(int dataLen) {
+			this.dataLen = dataLen;
+		}
 
 		public ParseResult() {
 			super();
@@ -323,7 +464,7 @@ public class UploadManager {
 		public ParseResult(String url, byte[] data) {
 			super();
 			this.imageUrl = url;
-			this.data = data;
+			this.setData(data);
 		}
 
 		public void setImageUrl(String imageUrl) {
@@ -332,6 +473,9 @@ public class UploadManager {
 
 		public void setData(byte[] data) {
 			this.data = data;
+			if (data != null){
+				this.setDataLen(data.length);
+			}
 		}
 
 		public String getImageUrl() {
@@ -366,12 +510,29 @@ public class UploadManager {
 			this.localThumbUrl = localThumbUrl;
 		}
 
+		public String getLocalZipFileUrl() {
+			return localZipFileUrl;
+		}
+
+		public void setLocalZipFileUrl(String localZipFileUrl) {
+			this.localZipFileUrl = localZipFileUrl;
+		}
+
+		public String getRemoteZipFileUrl() {
+			return remoteZipFileUrl;
+		}
+
+		public void setRemoteZipFileUrl(String remoteZipFileUrl) {
+			this.remoteZipFileUrl = remoteZipFileUrl;
+		}
+
 		@Override
 		public String toString() {
 			return "ParseResult [imageUrl=" + imageUrl + ", thumbUrl="
 					+ thumbUrl + ", localImageUrl=" + localImageUrl
-					+ ", localThumbUrl=" + localThumbUrl + ", data="
-					+ Arrays.toString(data) + "]";
+					+ ", localThumbUrl=" + localThumbUrl + ", localZipFileUrl="
+					+ localZipFileUrl + ", remoteZipFileUrl="
+					+ remoteZipFileUrl + "]";
 		}
 
 	}
