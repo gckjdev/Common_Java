@@ -1,16 +1,14 @@
 package com.orange.common.elasticsearch;
 
-import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.MultiSearchResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHits;
-
-import com.orange.common.log.ServerLog;
 
 public class ESQueryBuilder {
 
@@ -24,13 +22,19 @@ public class ESQueryBuilder {
 	 *  @param filed : the field to search
 	 *  @param value : the value to match
 	 *  */
-	public static QueryBuilder findByField(String field, String value) {
+	public static SearchResponse findByField(String indexName, String field, String value) {
 		
-		if ( field == null || value == null ) 
+		if ( indexName == null || field == null || value == null ) 
 			return null;
 		
-		return QueryBuilders.termQuery(field, value);
+		SearchResponse searchResponse = client.prepareSearch(indexName)   
+    		  							.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+    		  							.setQuery(QueryBuilders.matchQuery(field, value)) 
+    		  							.setFrom(0).setSize(60).setExplain(true)   
+    		  							.execute()   
+    		  							.actionGet();  	      
 		
+		return searchResponse;
 	}
 	
 	/**
@@ -43,15 +47,65 @@ public class ESQueryBuilder {
 	 *   Note : Don't put * or ? at the first character of the wildcard
 	 *          string.
 	 *  */
-	public static QueryBuilder findByWildcard(String field, String wildcardString) {
+	public static SearchResponse findByWildcard(String indexName, String field, String wildcardString) {
 		
-		if ( field == null || wildcardString == null )
+		if ( indexName == null || field == null || wildcardString == null )
 			return null;
 		
-		return QueryBuilders.wildcardQuery(field, wildcardString);
+		SearchResponse searchResponse = client.prepareSearch(indexName)   
+    		  							.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+    		  							.setQuery(QueryBuilders.wildcardQuery(field, wildcardString)) 
+    		  							.setFrom(0).setSize(60).setExplain(true)   
+    		  							.execute()   
+    		  							.actionGet();  	      
+		
+		return searchResponse;
 	}
 		
 	
+	public static MultiSearchResponse multiMatchSearch(String indexName, String value) {
+		
+		if ( indexName == null || value == null )
+			return null;
+		
+		SearchRequestBuilder srb1 = client.prepareSearch()
+				 .setQuery(QueryBuilders.matchQuery("nick_name", value))
+				 .setSize(1);
+		SearchRequestBuilder srb2 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("sina_nick", value))
+	             .setSize(1);
+		SearchRequestBuilder srb3 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("qq_nick", value))
+	             .setSize(1);
+		SearchRequestBuilder srb4 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("sina_id", value))
+	             .setSize(1);
+		SearchRequestBuilder srb5 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("qq_id", value))
+	             .setSize(1);
+		SearchRequestBuilder srb6 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("facebook_id", value))
+	             .setSize(1);
+		SearchRequestBuilder srb7 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("email", value))
+	             .setSize(1);
+		SearchRequestBuilder srb8 = client.prepareSearch()
+	             .setQuery(QueryBuilders.matchQuery("signature", value))
+	             .setSize(1);
+		
+	    MultiSearchResponse msr = client.prepareMultiSearch()
+			        .add(srb1)
+			        .add(srb2)
+			        .add(srb3)
+			        .add(srb4)
+			        .add(srb5)
+			        .add(srb6)
+			        .add(srb7)
+			        .add(srb8)
+			        .execute().actionGet();
+
+		return msr;
+	}
 	
 	public static void main(String[] args) {
 //		 IndexResponse indexResponse = ESIndexBuilder.indexMongoDB("game","user","mongoindex");
@@ -59,14 +113,8 @@ public class ESQueryBuilder {
 //			 ServerLog.info(0, "Index mongodb fails");
 //			 return;
 //		 }
-//		 
-		 SearchResponse searchResponse = client.prepareSearch("mongoindex")   
-	    		  	.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-	    		  	.setQuery(ESQueryBuilder.findByField("is_robot","1")) 
-	    	      .setFrom(0).setSize(60).setExplain(true)   
-	    	      .execute()   
-	    	      .actionGet();  	      
-	      
+
+		 SearchResponse searchResponse = findByField("mongoindex", "is_robot", "1");
 		 SearchHits hits = searchResponse.hits();
 		 long totalHits = hits.getTotalHits();
 		 if ( totalHits != 0 ) {
@@ -75,4 +123,6 @@ public class ESQueryBuilder {
 			 }
 		 }
 	}
+
+	
 }
