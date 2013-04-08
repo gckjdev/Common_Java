@@ -1,8 +1,14 @@
 package com.orange.common.elasticsearch;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
+import javax.xml.transform.Source;
+
+import org.apache.cassandra.cli.CliParser.newColumnFamily_return;
 import org.elasticsearch.action.search.MultiSearchRequestBuilder;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -11,7 +17,9 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.percolator.PercolatorExecutor.SourceRequest;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import com.orange.common.log.ServerLog;
@@ -90,7 +98,7 @@ public class ESQueryBuilder {
 	}
 		
 	/**
-	 * Like searchByField, but it tries to match multiple fields.
+	 * Like searchByField, but it tries to match multiplek fields.
 	 *  
 	 *   
 	 * @param indexName     : the index name 
@@ -133,19 +141,19 @@ public class ESQueryBuilder {
 		String indexName = "mongoindex";
 		
 		// Test for searchByFiled
-		String fieldToSearch = "nick_name";
-		String matchText = "皮　彭";
-		int start1 = 0;
-		int offset1 = 100;
-		SearchResponse searchResponse = searchByField(indexName, fieldToSearch, matchText, start1, offset1);
-		SearchHits hits = searchResponse.hits();
-		long totalHits1 = hits.getTotalHits();
-		if ( hits.getTotalHits() != 0 ) {
-			 long count = start1+offset1 < totalHits1 ? start1+offset1 : totalHits1;
-			 for ( int i = start1; i < count; i++ ) {
-				 ServerLog.info(0, i + " : " + hits.getAt(i).getSource().get("nick_name").toString());  
-			 }
-		}
+//		String fieldToSearch = "nick_name";
+//		String matchText = "皮　彭";
+//		int start1 = 0;
+//		int offset1 = 100;
+//		SearchResponse searchResponse = searchByField(indexName, fieldToSearch, matchText, start1, offset1);
+//		SearchHits hits = searchResponse.hits();
+//		long totalHits1 = hits.getTotalHits();
+//		if ( hits.getTotalHits() != 0 ) {
+//			 long count = start1+offset1 < totalHits1 ? start1+offset1 : totalHits1;
+//			 for ( int i = start1; i < count; i++ ) {
+//				 ServerLog.info(0, i + " : " + hits.getAt(i).getSource().get("nick_name").toString());  
+//			 }
+//		}
 	
 		
 		// Test for searchByMultiMatch
@@ -160,20 +168,51 @@ public class ESQueryBuilder {
 		candidateFields.add("qq_id");
 		candidateFields.add("facebook_id");
 		candidateFields.add("signature");
-		candidateFields.add("user_id");
+//		candidateFields.add("user_id");
 		int start2 = 0;
 		int offset2 = 10;
+		// 降序比较器，按搜索得分从高到低排列
+		Map<Float, Map<String, Object>> scoreResult = new TreeMap<Float, Map<String, Object>>(
+				new Comparator<Float>() {
+					@Override
+					public int compare(Float f1, Float f2) {
+						// Don't do like this :   return (int)(f2-f1),
+						// because cast into int will loss precision. That said, 0.xxx will end up being 0.
+						// This makes the map thinks they are the same key, and thus overwrite the privious 
+						// key-value pair stored.
+						if ( f2 - f1 < 0.0) 
+							return -1;
+						else 
+							return 1;
+					}
+				});
 		MultiSearchResponse msr = searchByMultiMatch(indexName, candidateFields, textVal, start2, offset2);
+		// 把每一个字段的查找结果，按“得分”和“user ID“键值对放入TreeMap中（使其按得分从高到低排列）
 		for (MultiSearchResponse.Item item : msr.responses()) {
 		    SearchResponse response = item.response();
 		    long totalHits2 = response.hits().totalHits();
 		    if ( totalHits2 != 0) {
 		    	long count = start2 + offset2 < totalHits2 ? start2 + offset2 : totalHits2;
-		    	ServerLog.info(0, " ========== ");
 		    	for ( int i = start2; i < count; i++ ) {
-		    		ServerLog.info(0, response.hits().getAt(i).getSource().toString());
+		    		SearchHit searchHit = response.hits().getAt(i);
+		    		float score = searchHit.getScore();
+		    		Map<String, Object> source = searchHit.getSource();
+			    	scoreResult.put(score, source);
 		    	}
 		    }
+		}
+		List<Map<String, Object>> sourceList = new ArrayList<Map<String,Object>>();
+		for (Map.Entry<Float, Map<String, Object>> entry: scoreResult.entrySet()) {
+			sourceList.add(entry.getValue());
+		}
+		// 截取需要的范围返回
+		int first = start2 >= sourceList.size() ? sourceList.size()-1 : start2;
+		int last = start2+offset2 <= sourceList.size()-1 ? start2+offset2 : sourceList.size()-1;
+		List<Map<String, Object>>  result = sourceList.subList(first, last);
+
+		ServerLog.info(0, "Total : " + result.size());
+		for (Map<String, Object> e: result) {
+			ServerLog.info(0, e.toString());
 		}
 	}
 
