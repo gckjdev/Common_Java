@@ -157,7 +157,7 @@ public class ESQueryBuilder {
 	
 		
 		// Test for searchByMultiMatch
-		String textVal = "皮皮彭";
+		String textVal = "皮 凌哲";
 		List<String> candidateFields = new ArrayList<String>();
 		// nick_name, email ,sina_nick,qq_nick, sina_id, qq_id, facebook_id, signature, user_id;
 		candidateFields.add("nick_name");
