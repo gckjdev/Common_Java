@@ -35,6 +35,7 @@ public class UploadManager {
 			String localDir, String remoteDir) {
 		String localPath = "";
 		String httpPath = "";
+		String relativePath = "";
 		try {
 			request.setCharacterEncoding(ENCODING_UTF8);
 			ServletFileUpload upload = new ServletFileUpload();
@@ -44,14 +45,14 @@ public class UploadManager {
 						.info("<uploadFile> the request doesn't contain a multipart/form-data "
 								+ "or multipart/mixed stream, content type header is null .");
 				return new UploadFileResult(UploadErrorCode.ERROR_NO_MIME_DATA,
-						localPath, httpPath);
+						localPath, httpPath, relativePath);
 			}
 
 			FileItemIterator iter = upload.getItemIterator(request);
 			if (iter == null) {
 				log.info("<uploadFile> the item iterator is null.");
 				return new UploadFileResult(UploadErrorCode.ERROR_NO_FORM_ITEM,
-						localPath, httpPath);
+						localPath, httpPath, relativePath);
 			}
 
 			while (iter.hasNext()) {
@@ -101,6 +102,7 @@ public class UploadManager {
 
 					// construct return http path
 					httpPath = remoteDir + timeDir + "/" + generateFileName;
+					relativePath = timeDir + "/" + generateFileName;
 
 					// write to file
 					log.info("<uploadFile> write to file=" + localPath
@@ -114,15 +116,15 @@ public class UploadManager {
 			log.error("<uploadFile> file path=" + localPath
 					+ ", but catch exception=" + e.toString(), e);
 			return new UploadFileResult(UploadErrorCode.ERROR_UPLOAD_EXCEPTION,
-					"", "");
+					"", "", "");
 		}
 
 		if (localPath.length() > 0 && httpPath.length() > 0) {
 			return new UploadFileResult(UploadErrorCode.ERROR_SUCCESS,
-					localPath, httpPath);
+					localPath, httpPath, relativePath);
 		} else {
 			return new UploadFileResult(UploadErrorCode.ERROR_NO_DATA,
-					localPath, httpPath);
+					localPath, httpPath, relativePath);
 		}
 	}
 

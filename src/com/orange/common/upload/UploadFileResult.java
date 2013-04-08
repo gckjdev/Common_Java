@@ -5,11 +5,13 @@ public class UploadFileResult {
 	UploadErrorCode errorCode;
 	String localPathURL;
 	String remotePathURL;
+	String relativeURL;
 	
-	public UploadFileResult(UploadErrorCode errorCode, String localPathURL, String remotePathURL){
+	public UploadFileResult(UploadErrorCode errorCode, String localPathURL, String remotePathURL, String relativeURL){
 		this.errorCode = errorCode;
 		this.localPathURL = localPathURL;
 		this.remotePathURL = remotePathURL;
+		this.relativeURL = relativeURL;
 	}
 
 	public UploadErrorCode getErrorCode() {
@@ -34,6 +36,14 @@ public class UploadFileResult {
 
 	public void setRemotePathURL(String remotePathURL) {
 		this.remotePathURL = remotePathURL;
+	}
+
+	public String getRelativeURL() {
+		return relativeURL;
+	}
+
+	public void setRelativeURL(String relativeURL) {
+		this.relativeURL = relativeURL;
 	}
 	
 	
