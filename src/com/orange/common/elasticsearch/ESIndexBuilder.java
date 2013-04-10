@@ -87,7 +87,7 @@ public class ESIndexBuilder {
 	public static boolean indexByRawAPI(String jsonDoc, String indexName, String indexType) {
 	
 		if (jsonDoc == null || indexName == null || indexType == null){
-			ServerLog.info(0, "Imcomplete arguments , fails to index!");
+			ServerLog.warn(0, "Imcomplete arguments , fails to index!");
 			return false;
 		}
 		
@@ -97,7 +97,7 @@ public class ESIndexBuilder {
 		                               .actionGet(); 
 		
 		if ( ! response.getIndex().equals(indexName)){
-			ServerLog.info(0, "response.getIndex = " + response.getIndex() +", indexName = " + indexName);
+			ServerLog.warn(0, "response.getIndex = " + response.getIndex() +", indexName = " + indexName);
 			return false;
 		}
 		return true;

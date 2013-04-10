@@ -126,7 +126,7 @@ public class ESQueryBuilder {
 		for (String candidateField : candidateFields) {
 			qb.field(candidateField);
 		}
-		ServerLog.info(0, qb.toString());
+		ServerLog.info(0, "<searchByQueryString> ES query string=" + qb.toString());
 		SearchResponse searchResponse = client.prepareSearch(indexName)   
 //					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 					.setQuery(qb) 
