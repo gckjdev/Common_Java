@@ -119,7 +119,7 @@ public class ESQueryBuilder {
 		}
 		
 		QueryStringQueryBuilder qb = QueryBuilders.queryString(textVal)
-									.defaultOperator(Operator.OR) // AND操作,结果必须出现textVal中所有单词
+									.defaultOperator(Operator.OR) // OR操作,结果必须出现textVal中所有单词
 									.analyzer(CHINESE_ANALYZER) // 指定中文分词器
 									.useDisMax(true); // 所有搜索结果要组合
 		
@@ -128,7 +128,7 @@ public class ESQueryBuilder {
 		}
 		ServerLog.info(0, "<searchByQueryString> ES query string=" + qb.toString());
 		SearchResponse searchResponse = client.prepareSearch(indexName)   
-//					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 					.setQuery(qb) 
 					.setFrom(start).setSize(offset).setExplain(true)   
 					.execute()   
@@ -184,7 +184,7 @@ public class ESQueryBuilder {
 	
 	public static void main(String[] args) {
 
-		String indexName = "mongoindex";
+		String indexName = "game";
 		List<String> candidateFields = new ArrayList<String>();
 		// nick_name, email ,sina_nick,qq_nick, sina_id, qq_id, facebook_id, signature, user_id;
 		candidateFields.add("nick_name");
@@ -199,71 +199,71 @@ public class ESQueryBuilder {
 		
 		/**
 		 *  Test for searchByFiled
-//		 */
-//		String fieldToSearch = "nick_name";
-//		String matchText = "皮　彭";
-//		int start1 = 0;
-//		int offset1 = 100;
-//		SearchResponse searchResponse = searchByField(indexName, fieldToSearch, matchText, start1, offset1);
-//		SearchHits hits = searchResponse.hits();
-//		long totalHits1 = hits.getTotalHits();
-//		if ( hits.getTotalHits() != 0 ) {
-//			 long count = start1+offset1 < totalHits1 ? start1+offset1 : totalHits1;
-//			 for ( int i = start1; i < count; i++ ) {
-//				 ServerLog.info(0, i + " : " + hits.getAt(i).getSource().get("nick_name").toString());  
-//			 }
-//		}
-//	
-//		
-//		/**
-//		 *  Test for searchByMultiMatch
-//		 */
-//		String textVal = "皮 凌哲";
-//		int start2 = 0;
-//		int offset2 = 10;
-//		// 降序比较器，按搜索得分从高到低排列
-//		Map<Float, Map<String, Object>> scoreResult = new TreeMap<Float, Map<String, Object>>(
-//				new Comparator<Float>() {
-//					@Override
-//					public int compare(Float f1, Float f2) {
-//						// Don't do like this :   return (int)(f2-f1),
-//						// because cast into int will loss precision. That said, 0.xxx will end up being 0.
-//						// This makes the map thinks they are the same key, and thus overwrite the privious 
-//						// key-value pair stored.
-//						if ( f2 - f1 < 0.0) 
-//							return -1;
-//						else 
-//							return 1;
-//					}
-//				});
-//		MultiSearchResponse msr = searchByMultiMatch(indexName, candidateFields, textVal, start2, offset2);
-//		// 把每一个字段的查找结果，按“得分”和“user ID“键值对放入TreeMap中（使其按得分从高到低排列）
-//		for (MultiSearchResponse.Item item : msr.responses()) {
-//		    SearchResponse response = item.response();
-//		    long totalHits2 = response.hits().totalHits();
-//		    if ( totalHits2 != 0) {
-//		    	long count = start2 + offset2 < totalHits2 ? start2 + offset2 : totalHits2;
-//		    	for ( int i = start2; i < count; i++ ) {
-//		    		SearchHit searchHit = response.hits().getAt(i);
-//		    		float score = searchHit.getScore();
-//		    		Map<String, Object> source = searchHit.getSource();
-//			    	scoreResult.put(score, source);
-//		    	}
-//		    }
-//		}
-//		List<Map<String, Object>> sourceList = new ArrayList<Map<String,Object>>();
-//		for (Map.Entry<Float, Map<String, Object>> entry: scoreResult.entrySet()) {
-//			sourceList.add(entry.getValue());
-//		}
-//		// 截取需要的范围返回
-//		int first = start2 >= sourceList.size() ? sourceList.size()-1 : start2;
-//		int last = start2+offset2 <= sourceList.size()-1 ? start2+offset2 : sourceList.size()-1;
-//		List<Map<String, Object>>  result = sourceList.subList(first, last);
-//
-//		ServerLog.info(0, "Total : " + result.size());
-//		for (Map<String, Object> e: result) {
-//			ServerLog.info(0, e.toString());
-//		}
+		 */
+		String fieldToSearch = "nick_name";
+		String matchText = "皮　彭";
+		int start1 = 0;
+		int offset1 = 100;
+		SearchResponse searchResponse = searchByField(indexName, fieldToSearch, matchText, start1, offset1);
+		SearchHits hits = searchResponse.hits();
+		long totalHits1 = hits.getTotalHits();
+		if ( hits.getTotalHits() != 0 ) {
+			 long count = start1+offset1 < totalHits1 ? start1+offset1 : totalHits1;
+			 for ( int i = start1; i < count; i++ ) {
+				 ServerLog.info(0, i + " : " + hits.getAt(i).getSource().get("nick_name").toString());  
+			 }
+		}
+	
+		
+		/**
+		 *  Test for searchByMultiMatch
+		 */
+		String textVal = "皮 凌哲";
+		int start2 = 0;
+		int offset2 = 10;
+		// 降序比较器，按搜索得分从高到低排列
+		Map<Float, Map<String, Object>> scoreResult = new TreeMap<Float, Map<String, Object>>(
+				new Comparator<Float>() {
+					@Override
+					public int compare(Float f1, Float f2) {
+						// Don't do like this :   return (int)(f2-f1),
+						// because cast into int will loss precision. That said, 0.xxx will end up being 0.
+						// This makes the map thinks they are the same key, and thus overwrite the privious 
+						// key-value pair stored.
+						if ( f2 - f1 < 0.0) 
+							return -1;
+						else 
+							return 1;
+					}
+				});
+		MultiSearchResponse msr = searchByMultiMatch(indexName, candidateFields, textVal, start2, offset2);
+		// 把每一个字段的查找结果，按“得分”和“user ID“键值对放入TreeMap中（使其按得分从高到低排列）
+		for (MultiSearchResponse.Item item : msr.responses()) {
+		    SearchResponse response = item.response();
+		    long totalHits2 = response.hits().totalHits();
+		    if ( totalHits2 != 0) {
+		    	long count = start2 + offset2 < totalHits2 ? start2 + offset2 : totalHits2;
+		    	for ( int i = start2; i < count; i++ ) {
+		    		SearchHit searchHit = response.hits().getAt(i);
+		    		float score = searchHit.getScore();
+		    		Map<String, Object> source = searchHit.getSource();
+			    	scoreResult.put(score, source);
+		    	}
+		    }
+		}
+		List<Map<String, Object>> sourceList = new ArrayList<Map<String,Object>>();
+		for (Map.Entry<Float, Map<String, Object>> entry: scoreResult.entrySet()) {
+			sourceList.add(entry.getValue());
+		}
+		// 截取需要的范围返回
+		int first = start2 >= sourceList.size() ? sourceList.size()-1 : start2;
+		int last = start2+offset2 <= sourceList.size()-1 ? start2+offset2 : sourceList.size()-1;
+		List<Map<String, Object>>  result = sourceList.subList(first, last);
+
+		ServerLog.info(0, "Total : " + result.size());
+		for (Map<String, Object> e: result) {
+			ServerLog.info(0, e.toString());
+		}
 		
 		/**
 		 * Test for searchByQueryString
