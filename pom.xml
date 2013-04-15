@@ -69,19 +69,11 @@
 		</dependency>	
 	
 		<dependency>
-      		<groupId>org.elasticsearch</groupId>
-      		<artifactId>elasticsearch</artifactId>
-      		<version>0.20.5</version>
-    	</dependency>
+    	  		<groupId>org.elasticsearch</groupId>
+    	  		<artifactId>elasticsearch</artifactId>
+    	  		<version>0.20.5</version>
+         	</dependency>
 	
-		<dependency>
-               <artifactId>solr-solrj</artifactId>
-               <groupId>org.apache.solr</groupId>
-               <version>3.3.0</version>
-               <type>jar</type>
-               <scope>compile</scope>
-        </dependency>
-
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>
