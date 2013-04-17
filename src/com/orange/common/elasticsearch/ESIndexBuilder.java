@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -32,7 +34,9 @@ public class ESIndexBuilder {
 		if (dbName == null || collection == null || indexName == null) 
 			return null;
 		
-		Client client = new TransportClient()
+		Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "gckj").build();
+		Client client = new TransportClient(settings)
 		   .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 		
 		String type;
