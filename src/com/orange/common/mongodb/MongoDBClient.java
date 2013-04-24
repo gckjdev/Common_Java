@@ -9,10 +9,13 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
+import org.bson.BSON;
+import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -170,6 +173,7 @@ public class MongoDBClient {
 	}
 
 	public boolean insert(String tableName, DBObject docObject) {
+		
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return false;
