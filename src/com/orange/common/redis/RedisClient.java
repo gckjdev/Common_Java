@@ -2,9 +2,12 @@ package com.orange.common.redis;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import org.antlr.grammar.v3.ANTLRv3Parser.finallyClause_return;
 import org.apache.log4j.Logger;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -14,6 +17,8 @@ public class RedisClient {
 	static Logger log = Logger.getLogger(RedisClient.class.getName()); 
 	JedisPool pool = null; 	
 	static RedisClient defaultClient = new RedisClient();
+	
+	final private ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(1);	
 	
 	private RedisClient(){
 		
@@ -156,6 +161,29 @@ public class RedisClient {
 			pool.destroy();
 			pool = null;
 		}
+	}
+
+	public void scheduleRemoveRecordAfterTop(final String key, final int maxCount, final int interval) {
+
+		scheduleService.scheduleAtFixedRate(new Runnable() {
+
+			@Override
+			public void run() {
+				// clean useless data
+				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+
+					@Override
+					public Boolean call(Jedis jedis) {				
+						Long removeCount = jedis.zremrangeByRank(key, 0, -maxCount);
+						log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+						return Boolean.TRUE;
+					}
+					
+				});
+				return;
+			}
+		}, 1, interval, TimeUnit.SECONDS);
+		
 	}
 
 
