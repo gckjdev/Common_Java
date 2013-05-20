@@ -1,15 +1,9 @@
 package com.orange.common.redis;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
-import org.bson.types.ObjectId;
-
-import com.orange.game.model.manager.feed.HotFeedManagerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
