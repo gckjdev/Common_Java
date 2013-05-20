@@ -1,16 +1,10 @@
 package com.orange.common.redis;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
+import org.antlr.grammar.v3.ANTLRv3Parser.finallyClause_return;
 import org.apache.log4j.Logger;
-import org.bson.types.ObjectId;
-
-import com.orange.game.model.manager.feed.HotFeedManagerFactory;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -63,6 +57,7 @@ public class RedisClient {
 					return Boolean.FALSE;
 				}
 				jedis.zadd(key, score, member);
+				log.info("<RedisClient> "+member+","+score+" ADDED @"+key);
 				return Boolean.TRUE;
 			}			
 		});		
@@ -114,6 +109,22 @@ public class RedisClient {
 		return ((Boolean)result).booleanValue();
 	}	
 	
+	public int ztopcount(final String key) {
+		Object result = (Object)execute(new RedisCallable<Long>() {
+			@Override
+			public Long call(Jedis jedis) {				
+				Long count = jedis.zcount(key, Double.MIN_VALUE, Double.MAX_VALUE);
+				log.info("<RedisClient> "+count+" COUNT @"+key);
+				return count;
+			}			
+		});		
+		
+		if (result == null)
+			return 0;
+		
+		return ((Long)result).intValue();
+	}
+	
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
 //			@Override
@@ -146,5 +157,7 @@ public class RedisClient {
 			pool = null;
 		}
 	}
+
+
 	
 }
