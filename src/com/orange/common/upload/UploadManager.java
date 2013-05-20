@@ -442,8 +442,8 @@ public class UploadManager {
 	public static class ParseResult {
 		private String imageUrl;
 		private String thumbUrl;
-		private String localImageUrl;
-		private String localThumbUrl;
+		private String localImageUrl;		// relative URL without full path
+		private String localThumbUrl;		// relative URL without full path
 		
 		private String localZipFileUrl;
 		private String remoteZipFileUrl;

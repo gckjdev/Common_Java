@@ -1,8 +1,15 @@
 package com.orange.common.redis;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
+
+import com.orange.game.model.manager.feed.HotFeedManagerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -47,21 +54,81 @@ public class RedisClient {
 		return result;
 	}
 	
-	public void hset(final String table, final String key, final String hashKey, final String hashValue){
-		execute(new RedisCallable() {			
+	public boolean zadd(final String key, final double score, final String member){
+		Object result = (Boolean)execute(new RedisCallable<Boolean>() {
 			@Override
-			public Object call(Jedis jedis) {
-				if (table == null || key == null || hashKey == null){
-					log.error("<hset> but table or key or hashKey is null, table="+table+", key="+key+", hashKey="+hashKey);
-					return null;
+			public Boolean call(Jedis jedis) {				
+				if (key == null || member == null){
+					log.error("<RedisClient> ADD but key or member is null");
+					return Boolean.FALSE;
+				}
+				jedis.zadd(key, score, member);
+				return Boolean.TRUE;
+			}			
+		});		
+		
+		if (result == null)
+			return false;
+		
+		return ((Boolean)result).booleanValue();
+	}
+	
+	// get TOP N
+	@SuppressWarnings("unchecked")
+	public Set<String> ztop(final String key, final int offset, final int limit) {
+		Object retList = RedisClient.getInstance().execute(new RedisCallable<Set<String>>() {
+
+			@Override
+			public Set<String> call(Jedis jedis) {
+				
+				Set<String> set = jedis.zrevrangeByScore(key, Double.MAX_VALUE, Double.MIN_VALUE, offset, limit);
+				if (set != null){
+					return set;
 				}
 				
-				String jedisKey = table + ":" + key;
-				jedis.hset(jedisKey, hashKey, hashValue);
-				return null;
+				return Collections.emptySet();
 			}
+			
 		});
+		
+		if (retList == null)
+			return Collections.emptySet();
+		
+		return (Set<String>)retList;
 	}
+	
+	// delete data after TOP N
+	public boolean zdeletebelowtop(final String key, final int maxTopCount){
+		Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+			@Override
+			public Boolean call(Jedis jedis) {				
+				Long removeCount = jedis.zremrangeByRank(key, 0, -maxTopCount);
+				log.info("<RedisClient> "+removeCount+" DELETED @"+key);
+				return Boolean.TRUE;
+			}			
+		});		
+		
+		if (result == null)
+			return false;
+		
+		return ((Boolean)result).booleanValue();
+	}	
+	
+//	public void hset(final String table, final String key, final String hashKey, final String hashValue){
+//		execute(new RedisCallable() {			
+//			@Override
+//			public Object call(Jedis jedis) {
+//				if (table == null || key == null || hashKey == null){
+//					log.error("<hset> but table or key or hashKey is null, table="+table+", key="+key+", hashKey="+hashKey);
+//					return null;
+//				}
+//				
+//				String jedisKey = table + ":" + key;
+//				jedis.hset(jedisKey, hashKey, hashValue);
+//				return null;
+//			}
+//		});
+//	}
 	
 	public void destroyPool(){
 

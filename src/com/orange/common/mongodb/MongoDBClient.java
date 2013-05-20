@@ -68,7 +68,7 @@ public class MongoDBClient {
 		boolean auth = db.authenticate(userName, password.toCharArray());
 		return;
 	}
-
+	
 	public MongoDBClient(String dbName) {
 
 		String address = System.getProperty("mongodb.address");
