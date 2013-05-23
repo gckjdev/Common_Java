@@ -1,8 +1,10 @@
 package com.orange.common.elasticsearch;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
@@ -86,16 +88,17 @@ public class ESIndexBuilder {
 	 * @param  jsonDoc   　要索引的json文档
 	 * @param  indexName 　索引库名
 	 * @param  indexType　　索引类型
+	 * @param  id          每个被索引的文档的独一的ID(以确保更新操作能针对这个文档而不是另新增一个)
 	 * @return 
 	 */
-	public static boolean indexByRawAPI(String jsonDoc, String indexName, String indexType) {
+	public static boolean indexByRawAPI(String jsonDoc, String indexName, String indexType, String id) {
 	
-		if (jsonDoc == null || indexName == null || indexType == null){
+		if (jsonDoc == null || indexName == null || indexType == null || id == null){
 			ServerLog.warn(0, "Imcomplete arguments , fails to index!");
 			return false;
 		}
 		
-		IndexResponse response = client.prepareIndex(indexName, indexType)
+		IndexResponse response = client.prepareIndex(indexName, indexType, id)
 									   .setSource(jsonDoc)
 		                               .execute()
 		                               .actionGet(); 
@@ -108,6 +111,48 @@ public class ESIndexBuilder {
 	
 	}
 	
+	
+	/**
+	 * 更新某一个索引文档的某一字段  
+	 * @param  updateField 待更新的字段
+	 * @param  updateValue 待更新的值
+	 * @param  id 待更新文档的id　
+	 * @param  indexName 　索引库名
+	 * @param  indexType　　索引类型
+	 * @return 
+	 */
+	public static boolean updateIndex(Object updateField, Object updateValue,
+			 String indexName, String indexType, String id) {
+		
+		if (updateField == null || updateValue == null || id == null) {
+			ServerLog.warn(0, "Nothing to be updated!");
+			return false;
+		}
+		if (indexName == null || indexType == null){
+			ServerLog.warn(0, "Imcomplete arguments, failed to update index !");
+			return false;
+		}
+		
+		UpdateResponse response = client.prepareUpdate(indexName, indexType, id) 
+              .setScript("ctx._source." + updateField + "=\"" + updateValue + "\"")
+              .execute() 
+              .actionGet();
+		
+		Map<String, Object> sourceMap = response.getResult().sourceAsMap(); 
+		if ( sourceMap == null || sourceMap.isEmpty() ) {
+			ServerLog.warn(0, "No this doc " + id + " to be updated ?!");
+			return false;
+		}
+		
+		if ( sourceMap.get(updateField) != updateValue ) {
+			ServerLog.warn(0, "Update fails");
+			return false;
+		}
+		
+		return true;
+	}		
+			
+		
 	public static void main(String[] args) {
 		 IndexResponse indexResponse = ESIndexBuilder.indexByMongodbRiver("game","user", "mongoindex", null);
 		 if ( indexResponse == null ) {
