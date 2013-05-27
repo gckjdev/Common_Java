@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
@@ -81,7 +82,12 @@ public abstract class CommonService {
 	protected CassandraClient cassandraClient = null;
 	protected MongoDBClient mongoClient = null;
 	
-	HttpServletRequest request = null;		
+	private HttpServletRequest request = null;
+	private HttpServletResponse response;		
+
+	public HttpServletResponse getResponse() {
+		return response;
+	}
 
 	public MongoDBClient getMongoClient() {
 		return mongoClient;
@@ -296,4 +302,10 @@ public abstract class CommonService {
 		return this.isSecureMethod;
 	}
 
+	public void setResponse(HttpServletResponse response) {
+		this.response = response;
+	}
+
+	
+	
 }

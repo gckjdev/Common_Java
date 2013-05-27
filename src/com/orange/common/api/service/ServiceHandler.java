@@ -90,6 +90,7 @@ public class ServiceHandler {
 			obj.setCassandraClient(cassandraClient);
 			obj.setMongoClient(mongoClient);
 			obj.setRequest(request);
+			obj.setResponse(response);
 			obj.setDataFormat(format);
 			
 			if (!obj.validateSecurity(request)) {
