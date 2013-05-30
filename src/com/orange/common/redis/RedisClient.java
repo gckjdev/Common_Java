@@ -97,6 +97,26 @@ public class RedisClient {
 		return (Set<String>)retList;
 	}
 	
+	public boolean zrem(final String key, final String member) {
+		Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+			@Override
+			public Boolean call(Jedis jedis) {				
+				if (key == null || member == null){
+					log.error("<RedisClient> REMOVE but key or member is null");
+					return Boolean.FALSE;
+				}
+				Long count = jedis.zrem(key, member);
+				log.info("<RedisClient> "+member+" " + count + " REMOVED @"+key);
+				return Boolean.TRUE;
+			}			
+		});		
+		
+		if (result == null)
+			return false;
+		
+		return ((Boolean)result).booleanValue();
+	}
+	
 	// delete data after TOP N
 	public boolean zdeletebelowtop(final String key, final int maxTopCount){
 		Object result = (Boolean)execute(new RedisCallable<Boolean>() {
@@ -185,6 +205,8 @@ public class RedisClient {
 		}, 1, interval, TimeUnit.SECONDS);
 		
 	}
+
+
 
 
 	
