@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Transaction;
 
 public class RedisClient {
 
@@ -183,7 +184,7 @@ public class RedisClient {
 		}
 	}
 
-	public void scheduleRemoveRecordAfterTop(final String key, final int maxCount, final int interval) {
+	public void scheduleRemoveRecordAfterZSetTop(final String key, final int maxCount, final int interval) {
 
 		scheduleService.scheduleAtFixedRate(new Runnable() {
 
@@ -196,6 +197,45 @@ public class RedisClient {
 					public Boolean call(Jedis jedis) {				
 						Long removeCount = jedis.zremrangeByRank(key, 0, -maxCount);
 						log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+						return Boolean.TRUE;
+					}
+					
+				});
+				return;
+			}
+		}, 1, interval, TimeUnit.SECONDS);
+		
+	}
+	
+	public void scheduleRemoveRecordAfterListTop(final String key, final int maxCount, final int interval) {
+
+		scheduleService.scheduleAtFixedRate(new Runnable() {
+
+			@Override
+			public void run() {
+				// clean useless data
+				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+
+					@Override
+					public Boolean call(Jedis jedis) {			
+						
+						Long count = jedis.llen(key);
+						if (count == null){
+							return Boolean.FALSE;
+						}
+						
+						if (count.intValue() <= maxCount){
+							return Boolean.TRUE;
+						}
+						
+						int popCount = count.intValue() - maxCount;
+						
+						Transaction transaction = jedis.multi();
+						for (int i=0; i<popCount; i++){
+							transaction.rpop(key);
+						}
+						transaction.exec();
+						log.info("<RedisClient> "+popCount+" CLEANED @"+key);
 						return Boolean.TRUE;
 					}
 					
