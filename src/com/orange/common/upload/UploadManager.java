@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -239,6 +240,111 @@ public class UploadManager {
 
 	}
 
+	public static ParseResult readFormData(
+			HttpServletRequest request, 		
+			String metaDataFieldName,
+			String dataFieldName,
+			String imageFieldName, 
+			String uploadDataType,
+			String localImageDir, 
+			String remoteImageDir,
+			String localDataDir,
+			String remoteDataDir,
+			boolean zipDataFile
+			) {
+		
+		try {
+			ParseResult result = new ParseResult();
+			request.setCharacterEncoding(ENCODING_UTF8);
+			ServletFileUpload upload = new ServletFileUpload();
+			if (!ServletFileUpload.isMultipartContent(request)) {
+				log.info("<readFormData> the request doesn't contain a multipart/form-data or multipart/mixed stream, content type header is null .");
+				return null;
+			}
+
+			FileItemIterator iter = upload.getItemIterator(request);
+			if (iter == null) {
+				log.info("<readFormData> the item iterator is null.");
+				return null;
+			}
+
+			while (iter.hasNext()) {
+				FileItemStream item = iter.next();
+				String name = item.getFieldName();
+				InputStream stream = item.openStream();
+				if (!item.isFormField() && name != null) {
+					if (metaDataFieldName != null && name.equalsIgnoreCase(metaDataFieldName)){
+						log.info("<readFormData> meta data detected "+name);						
+						byte[] data = CommonService.readPostData(stream);
+						result.setMetaData(data)	;	
+						if (data != null){
+							log.info("<readFormData> meta data total "+data.length+" read.");							
+						}
+					}
+					else if (dataFieldName != null && name.equalsIgnoreCase(dataFieldName)) {						
+						log.info("<readFormData> data file detected "+name);
+
+						String timeDir = getTimeFilePath();
+						String dir = localDataDir + timeDir;
+						FileUtils.createDir(dir);
+						
+						String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+						String dataFilePath = null;
+						
+						int dataLen = 0;						
+						if (zipDataFile){
+							// write data and create zip file
+							String zipFileName = DEFAULT_ZIP_FILE_NAME;			// IMPORTANT, THIS MUST ALIGN WITH CLIENT
+							dataFilePath = dir+"/"+timeFileString+".zip";								
+							dataLen = ZipUtil.createZipFile(dataFilePath, zipFileName, stream);
+
+							String localZipFileUrl = timeDir + "/" + timeFileString+".zip"; 
+							String remoteZipFileUrl = remoteDataDir + localZipFileUrl;
+							
+							result.setDataLen(dataLen);
+							result.setLocalZipFileUrl(localZipFileUrl);
+							result.setRemoteZipFileUrl(remoteZipFileUrl);						
+						}
+						else{
+							String dataType = "."+uploadDataType;
+							
+							// write data as file directly
+							dataFilePath = dir+"/"+timeFileString+dataType;											
+							dataLen = writeToFile(dataFilePath, stream);
+							
+							String localDataFileUrl = timeDir + "/" + timeFileString+dataType; 
+							String remoteDataFileUrl = remoteDataDir + localDataFileUrl;
+							
+							result.setDataLen(dataLen);
+							result.setLocalZipFileUrl(localDataFileUrl);
+							result.setRemoteZipFileUrl(remoteDataFileUrl);						
+						}
+						
+						
+					} else if (imageFieldName != null && name.equalsIgnoreCase(imageFieldName)) {
+						log.info("<readFormData> image data file detected for "+imageFieldName);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir);
+
+						if (pr != null) {
+							result.setImageUrl(pr.getImageUrl());
+							result.setThumbUrl(pr.getThumbUrl());
+							result.setLocalImageUrl(pr.getLocalImageUrl());
+							result.setLocalThumbUrl(pr.getLocalThumbUrl());
+						}
+					}
+					else{
+						log.info("<readFormData> unknown form fields "+name);						
+					}
+				}
+			}
+			return result;
+		} catch (Exception e) {
+			log.error("<readFormData> catch exception=" + e.toString(), e);
+			return null;
+		}
+
+	}
+	
 	public static ParseResult getFormDataAndSaveImage(
 			HttpServletRequest request, 
 			String dataFieldName,
@@ -438,6 +544,25 @@ public class UploadManager {
 			}
 		}
 	};
+	
+	public static class ParseDataResult{
+		
+		int returnDataType;
+		
+		// for data file, e.g. draw data
+		String dataLocalUrl;
+		String dataRemoteUrl;
+		
+		// if it's image, there are thumb image created
+		String thumbLocalUrl;
+		String thumbRemoteUrl;
+
+		// return byte data
+		byte[] byteData;
+
+		int dataLen;
+		
+	}
 
 	public static class ParseResult {
 		private String imageUrl;
@@ -445,11 +570,21 @@ public class UploadManager {
 		private String localImageUrl;		// relative URL without full path
 		private String localThumbUrl;		// relative URL without full path
 		
-		private String localZipFileUrl;
-		private String remoteZipFileUrl;
+		private String localZipFileUrl;		// both zip file and non-zip file will use this field
+		private String remoteZipFileUrl;	
 
-		private byte[] data;
+		private byte[] data;					// this field is used for old implementation
 		private int dataLen;
+		
+		private byte[] metaData;		
+		
+		public byte[] getMetaData() {
+			return metaData;
+		}
+
+		public void setMetaData(byte[] metaData) {
+			this.metaData = metaData;
+		}
 
 		public int getDataLen() {
 			return dataLen;
@@ -516,16 +651,32 @@ public class UploadManager {
 			return localZipFileUrl;
 		}
 
-		public void setLocalZipFileUrl(String localZipFileUrl) {
-			this.localZipFileUrl = localZipFileUrl;
+		public void setLocalZipFileUrl(String localDataFileUrl) {
+			this.localZipFileUrl = localDataFileUrl;
 		}
 
 		public String getRemoteZipFileUrl() {
 			return remoteZipFileUrl;
 		}
 
-		public void setRemoteZipFileUrl(String remoteZipFileUrl) {
-			this.remoteZipFileUrl = remoteZipFileUrl;
+		public void setRemoteZipFileUrl(String remoteDataFileUrl) {
+			this.remoteZipFileUrl = remoteDataFileUrl;
+		}
+		
+		public String getLocalDataFileUrl() {
+			return localZipFileUrl;
+		}
+
+		public void setLocalDataFileUrl(String localDataFileUrl) {
+			this.localZipFileUrl = localDataFileUrl;
+		}
+
+		public String getRemoteDataFileUrl() {
+			return remoteZipFileUrl;
+		}
+
+		public void setRemoteDataFileUrl(String remoteDataFileUrl) {
+			this.remoteZipFileUrl = remoteDataFileUrl;
 		}
 
 		@Override
@@ -534,7 +685,7 @@ public class UploadManager {
 					+ thumbUrl + ", localImageUrl=" + localImageUrl
 					+ ", localThumbUrl=" + localThumbUrl + ", localZipFileUrl="
 					+ localZipFileUrl + ", remoteZipFileUrl="
-					+ remoteZipFileUrl + "]";
+					+ remoteZipFileUrl + ", dataLen=" + dataLen + "]";
 		}
 
 	}
