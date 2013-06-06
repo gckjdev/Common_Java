@@ -27,7 +27,6 @@ public class RedisClient {
 		if (address == null) {
 			address = "127.0.0.1";
 		}
-		
 		log.info("Create redis client pool on address "+address);
 		pool = new JedisPool(new JedisPoolConfig(), address);
 	}
