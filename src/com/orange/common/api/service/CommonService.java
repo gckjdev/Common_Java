@@ -259,6 +259,15 @@ public abstract class CommonService {
 		}
 		return defaultValue;
 	}
+	
+	protected String getStringValueFromRequeset(HttpServletRequest request,
+			String key, String defaultValue) {
+		String value = request.getParameter(key);
+		if (value != null && value.length() != 0) {
+			return value;
+		}
+		return defaultValue;
+	}
 
 	public boolean isBlackDevice(String deviceId) {
 		
