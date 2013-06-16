@@ -208,8 +208,8 @@ public class ServiceHandler {
 		response.setContentType(responseType);
 		try {
 
+            byte[] reply = responseData;
 			if (gzip){
-				byte[] reply = responseData;
 		        String contentType = CONTENT_TYPE_TEXT_PLAIN_UTF8;
 				
 				ByteArrayOutputStream output = null;
@@ -249,6 +249,10 @@ public class ServiceHandler {
 					response.getOutputStream().flush();
 				}
 			}
+
+            int sentRawLen = (responseData != null) ? responseData.length : 0;
+            int sentLen = (reply != null) ? reply.length : 0;
+            log.info("[SEND] total "+sentLen+", raw " + sentRawLen+" sent");
 		} catch (IOException e) {
 			log.error("sendResponse, catch exception=" + e.toString(), e);			
 		}
