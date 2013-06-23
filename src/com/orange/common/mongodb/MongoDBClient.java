@@ -24,6 +24,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.MongoOptions;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteResult;
 import com.orange.common.log.ServerLog;
 import com.orange.common.utils.StringUtil;
 
@@ -179,6 +180,15 @@ public class MongoDBClient {
 			return false;
 		collection.insert(docObject);
 		return true;
+	}
+	
+	public Object insertAndReturnField(String tableName, DBObject docObject, String fieldName) {
+		
+		DBCollection collection = db.getCollection(tableName);
+		if (collection == null)
+			return null;
+		WriteResult wr = collection.insert(docObject);
+		return wr.getField(fieldName);
 	}
 
 	// upsert = false
