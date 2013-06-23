@@ -252,7 +252,7 @@ public class ServiceHandler {
 
             int sentRawLen = (responseData != null) ? responseData.length : 0;
             int sentLen = (reply != null) ? reply.length : 0;
-            log.info("[SEND] total "+sentLen+", raw " + sentRawLen+" sent");
+            log.info("[SEND] total "+sentLen+" sent, raw " + sentRawLen);
 		} catch (IOException e) {
 			log.error("sendResponse, catch exception=" + e.toString(), e);			
 		}

@@ -290,7 +290,7 @@ public class MongoDBClient {
 		if (collection == null)
 			return;
 
-		log.info("<updateOne> query = " + query.toString() + ", update = "
+		log.info("<updateOne> "+tableName+"query = " + query.toString() + ", update = "
 				+ update.toString());
 		collection.update(query, update, false, false);
 	}
@@ -300,7 +300,7 @@ public class MongoDBClient {
 		if (collection == null)
 			return;
 
-		log.info("<updateAll> query = " + query.toString() + ", update = "
+		log.info("<updateAll> "+tableName+" query = " + query.toString() + ", update = "
 				+ update.toString());
 		collection.update(query, update, false, true);
 	}
@@ -310,7 +310,7 @@ public class MongoDBClient {
 		if (collection == null)
 			return;
 
-		log.info("<upsertAll> query = " + query.toString() + ", update = "
+		log.info("<upsertAll> "+tableName+" query = " + query.toString() + ", update = "
 				+ update.toString());
 		collection.update(query, update, true, true);
 	}
@@ -332,7 +332,7 @@ public class MongoDBClient {
 		updateValue.putAll(updateMap);
 		update.put("$set", updateValue);
 
-		log.info("<findAndModify> query = " + query.toString() + ", update = "
+		log.info("<findAndModify> "+tableName+"query = " + query.toString() + ", update = "
 				+ update.toString());
 		return collection.findAndModify(query, update);
 	}
@@ -386,7 +386,7 @@ public class MongoDBClient {
 		if (query == null)
 			return null;
 
-		log.info("<findOne>:query = " + query + ", returnFields = "
+		log.info("<findOne> "+tableName+" query = " + query + ", returnFields = "
 				+ returnFields);
 
 		DBCollection collection = db.getCollection(tableName);
@@ -442,7 +442,7 @@ public class MongoDBClient {
 		BasicDBObject update = new BasicDBObject();
 		update.put("$pull", pull);
 
-		log.info("query=" + query + " update=" + update);
+		log.info("<pullArray> "+tableName+" query=" + query + " update=" + update);
 		updateAll(tableName, query, update);
 	}
 
