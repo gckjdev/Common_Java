@@ -1,12 +1,17 @@
 package com.orange.common.utils.http;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
+
+import com.orange.common.log.ServerLog;
 
 public class HttpDownload {
 
@@ -77,4 +82,47 @@ public class HttpDownload {
 
         return result;
     }
+    
+    /**
+     *  从指定URL下载内容,　以String形式返回页面内容,　以供进一步处理
+     *  
+     * @param url: 欲下载的页面URL
+     * 
+     * @return 欲下载的页面内容,以字符串形式; 如果下载失败,　则为空字符串
+     * 
+     * @throws IOException　下载过程出现的异常 
+     */
+    public static String downloadFromURL(String url) throws IOException {
+		 
+	     String result = "";  
+	     BufferedReader in = null;  
+	     
+	     try {
+	    	 URL connURL = new java.net.URL(url);  
+	    	 HttpURLConnection httpConn = (HttpURLConnection)connURL.openConnection();  
+	         // 建立实际的连接  
+	         httpConn.connect();  
+	         in = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "UTF-8"));  
+	         
+	         // 读取返回的内容  
+	         String line;  
+	         while ((line = in.readLine()) != null) {  
+	            result += line;  
+	         }  
+	     } catch(IOException ie) {
+	    	 	ServerLog.info(0, "<downloadFromURL> Query fails due to " + ie.toString());
+	    	 	throw ie;
+	     } finally {  
+	    	  try {  
+		           if (in != null) {  
+		              in.close();  
+		            }  
+		       } catch (IOException ex) {  
+		           ex.printStackTrace();  
+		        }  
+	        }  
+	      
+	     return result;  
+	 }
+    
 }
