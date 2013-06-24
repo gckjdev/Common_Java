@@ -789,4 +789,28 @@ public class MongoDBClient {
 		return collection.find(query, returnFields);
 	}
 
+    public void createIndexIfNotExist(String tableName, String indexField) {
+        DBCollection collection = db.getCollection(tableName);
+        if (collection == null || indexField == null || indexField.length() == 0)
+            return;
+
+        List<DBObject> indexList = collection.getIndexInfo();
+        if (indexList != null){
+            for (DBObject index : indexList){
+                DBObject keys = (DBObject)index.get("key");
+                if (keys != null){
+                    if (keys.containsField(indexField)){
+                        log.info("<createIndex> "+tableName+", but index["+indexField+"] exist, skip");
+                        return;
+                    }
+                }
+            }
+        }
+
+        BasicDBObject index = new BasicDBObject();
+        index.put(indexField, 1);
+
+        log.info("<createIndex> "+tableName+", index="+index.toString());
+        collection.ensureIndex(index);
+    }
 }
