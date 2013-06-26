@@ -3,11 +3,16 @@ package com.orange.common.db;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.orange.common.mongodb.MongoDBClient;
+import org.apache.log4j.Logger;
 
 // TODO not implement yet
 public abstract class MongoDBExecutor {
+
+
+    static Logger log = Logger.getLogger(MongoDBExecutor.class.getName());
 
 	public static final String DB_NAME = "game";
 		
@@ -48,5 +53,21 @@ public abstract class MongoDBExecutor {
     
     public MongoDBClient getMongoDBClient(){
     	return mongoClient;
-    }    
+    }
+
+    public void shutdown(){
+        int WAIT_SECONDS = 10;
+        for (ExecutorService service : executorList){
+            service.shutdown();
+            try {
+                log.info("wait "+WAIT_SECONDS+" seconds for mongo db executor termination");
+                if (service.awaitTermination(10, TimeUnit.SECONDS)){
+                    log.info("mongo db executor terminated");
+                }
+            } catch (InterruptedException e) {
+            }
+        }
+
+
+    }
 }
