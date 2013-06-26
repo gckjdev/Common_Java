@@ -1,6 +1,5 @@
 package com.orange.common.apnsservice;
 
-import org.antlr.grammar.v3.ANTLRv3Parser.finallyClause_return;
 import org.apache.log4j.Logger;
 
 import com.notnoop.apns.APNS;

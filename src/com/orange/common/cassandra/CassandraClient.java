@@ -1,8 +1,12 @@
 package com.orange.common.cassandra;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.orange.common.utils.PropertyUtil;
+import org.apache.log4j.Logger;
 
 import me.prettyprint.cassandra.serializers.LongSerializer;
 import me.prettyprint.cassandra.serializers.StringSerializer;
@@ -25,6 +29,9 @@ import me.prettyprint.hector.api.query.RangeSlicesQuery;
 import me.prettyprint.hector.api.query.SliceQuery;
 
 public class CassandraClient {
+
+    static Logger log = Logger.getLogger(CassandraClient.class.getName());
+
 	Cluster cluster;
 	Keyspace keyspace;
 
@@ -35,6 +42,23 @@ public class CassandraClient {
 
 	final static int MAX_COUNT_FOR_MULTI_ROW = 50;
 
+    private static CassandraClient ourInstance = new CassandraClient();
+
+    public static CassandraClient getInstance() {
+        return ourInstance;
+    }
+
+    private CassandraClient() {
+        String address = PropertyUtil.getStringProperty("cassandra.address", "127.0.0.1");
+        String port = PropertyUtil.getStringProperty("cassandra.port", "9160");
+        String clusterName = PropertyUtil.getStringProperty("cassandra.cluster", "game_cluster");
+        String keyspace = PropertyUtil.getStringProperty("cassandra.keyspace", "game");
+
+        initServer(address+":"+port, clusterName);
+        initKeyspace(keyspace);
+    }
+
+    /*
 	public CassandraClient(String serverNameAndPort, String clusterName,
 			String keyspaceName) {
 		this.initServer(serverNameAndPort, clusterName);
@@ -42,11 +66,14 @@ public class CassandraClient {
 
 		assert (cluster != null && keyspace != null);
 	}
+	*/
 
 	public void initServer(String serverNameAndPort, String clusterName) { // e.g.
 		// "localhost:9160"
 		cluster = HFactory.getOrCreateCluster(clusterName,
 				new CassandraHostConfigurator(serverNameAndPort));
+
+        log.info("<cassandra> cluster "+clusterName+" @"+serverNameAndPort);
 	}
 
 	public void initKeyspace(String keyspaceName) {
@@ -54,15 +81,16 @@ public class CassandraClient {
 			return;
 		}
 		keyspace = HFactory.createKeyspace(keyspaceName, cluster);
+        log.info("<cassanrda> keyspace is "+keyspaceName);
 	}
 
 	public boolean insert(String columnFamilyName, String key,
 			String columnName, String columnValue) {
 		Mutator<String> mutator = HFactory.createMutator(keyspace,
 				StringSerializer.get());
-		mutator.addInsertion(key, columnFamilyName, HFactory
-				.createStringColumn(columnName, columnValue));
+		mutator.addInsertion(key, columnFamilyName, HFactory.createStringColumn(columnName, columnValue));
 		mutator.execute();
+        log.info("<cassandra> insert "+columnFamilyName+", key="+key+", column="+columnName+", value="+columnValue);
 		return true;
 	}
 
@@ -279,25 +307,31 @@ public class CassandraClient {
 		return result;
 	}
 
+    // use this method
 	public List<HColumn<String, String>> getColumnKeyByStringRange(
 			String columnFamilyName, String key, String start, String end,
 			int size) {
 		SliceQuery<String, String, String> q = HFactory.createSliceQuery(
 				keyspace, ss, ss, ss);
 		if (q == null) {
-			return null;
+            log.warn(String.format("<cassandra> query(%s) key(%s) start(%s) end(%s) size(%d) but fail to create query",
+                    columnFamilyName, key, start, end, size));
+            return Collections.emptyList();
 		}
 
 		q.setColumnFamily(columnFamilyName).setKey(key).setRange(start, end,
 				true, size);
 
 		QueryResult<ColumnSlice<String, String>> r = q.execute();
-		if (r == null) {
-			return null;
+		if (r == null || r.get() == null) {
+            log.warn(String.format("<cassandra> query(%s) key(%s) start(%s) end(%s) size(%d) but no result",
+                    columnFamilyName, key, start, end, size));
+			return Collections.emptyList();
 		}
 
 		List<HColumn<String, String>> result = r.get().getColumns();
-
+        log.warn(String.format("<cassandra> query(%s) key(%s) start(%s) end(%s) size(%d), %d result found",
+                columnFamilyName, key, start, end, size, result.size()));
 		return result;
 	}
 
@@ -405,6 +439,14 @@ public class CassandraClient {
 		mutator.execute();
 		return true;
 	}
+
+    public boolean deleteStringColumn(String columnFamilyName, String key,
+                                    String columnName) {
+        Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
+        mutator.delete(key, columnFamilyName, columnName, ss);
+        mutator.execute();
+        return true;
+    }
 
 	public boolean deleteMultipleColumns(String columnFamilyName, String key,
 			String[] columnNames) {
