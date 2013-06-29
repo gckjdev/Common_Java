@@ -11,7 +11,7 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 
 import com.orange.common.utils.StringUtil;
-import com.sun.image.codec.jpeg.*;
+//import com.sun.image.codec.jpeg.*;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -35,6 +35,8 @@ public class ImageManager {
 		return thumbPath;
 	}
 	*/
+
+    /*
 	private static boolean createThumbImage(Image bigJpg, String thumbPath,
 			int width, int height) throws Exception {
 		BufferedImage tag = new BufferedImage(width, height,
@@ -46,6 +48,7 @@ public class ImageManager {
 		newimage.close();
 		return true;
 	}
+	*/
 
 	/**
 	 * Write a JPEG file setting the compression quality.
@@ -222,7 +225,8 @@ public class ImageManager {
 		}
 		return ""; //success
 	}	
-	
+
+    /*
 	public static boolean createThumbImage(String imagePath, String thumbPath,
 			int width, int height) throws Exception {
 		if (StringUtil.isEmpty(imagePath) || StringUtil.isEmpty(thumbPath)) {
@@ -236,7 +240,9 @@ public class ImageManager {
 		}
 		return false;
 	}
+	*/
 
+    /*
 	public static boolean createThumbImage(String imagePath, String thumbPath,
 			float scale) throws Exception {
 		if (scale <= 0) {
@@ -262,4 +268,5 @@ public class ImageManager {
 		return false;
 
 	}
+	*/
 }

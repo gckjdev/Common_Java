@@ -30,7 +30,8 @@ public class UploadManager {
 
 	static final Logger log = Logger.getLogger(UploadManager.class.getName());
 	public static final String DEFAULT_ZIP_FILE_NAME = "data";
-	static String ENCODING_UTF8 = "UTF-8";
+    private static final int DEFAULT_THUMB_IMAGE_WIDTH = 500;
+    static String ENCODING_UTF8 = "UTF-8";
 
 	public static UploadFileResult uploadFile(HttpServletRequest request,
 			String localDir, String remoteDir) {
@@ -201,7 +202,7 @@ public class UploadManager {
 				// ImageManager.createThumbImage(localPath, localThumbPath, 256,
 				// 245);
 				String result = ImageManager.createThumbnail(localPath,
-						localThumbPath, 300);
+						localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
 				log.info("<UploadManager> create thumb file result=" + result);
 			} catch (Exception e) {
 				remoteThumbPath = null;
