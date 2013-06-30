@@ -789,7 +789,7 @@ public class MongoDBClient {
 		return collection.find(query, returnFields);
 	}
 
-    public void createIndexIfNotExist(String tableName, String indexField) {
+    public void createIndexIfNotExist(String tableName, String indexField, boolean unqiue) {
         DBCollection collection = db.getCollection(tableName);
         if (collection == null || indexField == null || indexField.length() == 0)
             return;
@@ -810,7 +810,16 @@ public class MongoDBClient {
         BasicDBObject index = new BasicDBObject();
         index.put(indexField, 1);
 
-        log.info("<createIndex> "+tableName+", index="+index.toString());
-        collection.ensureIndex(index);
+        DBObject indexOptions = new BasicDBObject();
+        indexOptions.put("unique", true);
+
+        if (unqiue){
+            log.info("<createIndex> "+tableName+", index="+index.toString()+", options="+indexOptions);
+            collection.ensureIndex(index, indexOptions);
+        }
+        else{
+            log.info("<createIndex> "+tableName+", index="+index.toString());
+            collection.ensureIndex(index);
+        }
     }
 }
