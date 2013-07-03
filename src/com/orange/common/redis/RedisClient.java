@@ -81,7 +81,7 @@ public class RedisClient {
 			@Override
 			public Set<String> call(Jedis jedis) {
 				
-				Set<String> set = jedis.zrevrangeByScore(key, Double.MAX_VALUE, Double.MIN_VALUE, offset, limit);
+				Set<String> set = jedis.zrevrangeByScore(key, Double.MAX_VALUE, -Double.MIN_VALUE, offset, limit);
 				if (set != null){
 					return set;
 				}
