@@ -4,3 +4,4 @@
 /logs/
 /bin
 .settings/
+deploy_common_game.sh
