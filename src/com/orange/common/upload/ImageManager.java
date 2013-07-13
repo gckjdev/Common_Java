@@ -84,11 +84,6 @@ public class ImageManager {
 	
 	/**
 	* Reads an image in a file and creates a thumbnail in another file.
-	* largestDimension is the largest dimension of the thumbnail, the other dimension is scaled accordingly.
-	* Utilises weighted stepping method to gradually reduce the image size for better results,
-	* i.e. larger steps to start with then smaller steps to finish with.
-	* Note: always writes a JPEG because GIF is protected or something - so always make your outFilename end in 'jpg'.
-	* PNG's with transparency are given white backgrounds
 	*/
 	public static String createThumbnail(String inFilename, String outFilename, int largestDimension)
 	{
