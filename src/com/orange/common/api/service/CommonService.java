@@ -4,10 +4,7 @@ package com.orange.common.api.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -244,13 +241,30 @@ public abstract class CommonService {
 		return byteData;
 	}
 	
-	protected int getIntValueFromRequeset(HttpServletRequest request, String key, int defaultValue) {
-		String value = request.getParameter(key);
-		if (value != null && value.length() != 0) {
-			return Integer.valueOf(value);
-		}
-		return defaultValue;
-	}
+	protected int getIntValueFromRequest(HttpServletRequest request, String key, int defaultValue) {
+        String value = request.getParameter(key);
+        if (value != null && value.length() != 0) {
+            return Integer.valueOf(value);
+        }
+        return defaultValue;
+    }
+
+    protected boolean getBoolValueFromRequest(HttpServletRequest request, String key, boolean defaultValue) {
+        String value = request.getParameter(key);
+        if (value != null && value.length() != 0) {
+            return (Integer.valueOf(value) != 0);
+        }
+        return defaultValue;
+    }
+
+    protected Date getDateValueFromRequest(HttpServletRequest request, String key, Date defaultValue) {
+        String value = request.getParameter(key);
+        if (value != null && value.length() != 0) {
+            long time = Integer.parseInt(value);
+            return new Date(time*1000);
+        }
+        return defaultValue;
+    }
 
 	protected long getLongValueFromRequeset(HttpServletRequest request, String key, long defaultValue) {
 		String value = request.getParameter(key);

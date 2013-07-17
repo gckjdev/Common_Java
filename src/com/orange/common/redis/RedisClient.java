@@ -72,8 +72,30 @@ public class RedisClient {
 		
 		return ((Boolean)result).booleanValue();
 	}
-	
-	// get TOP N
+
+    public boolean zinc(final String key, final double increment, final String member) {
+        Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+                if (key == null || member == null){
+                    log.error("<RedisClient> ADD but key or member is null");
+                    return Boolean.FALSE;
+                }
+                jedis.zincrby(key, increment, member);
+                log.info("<RedisClient> "+member+","+increment+" ZINCBY @"+key);
+                return Boolean.TRUE;
+            }
+        });
+
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+
+    }
+
+
+    // get TOP N
 	@SuppressWarnings("unchecked")
 	public Set<String> ztop(final String key, final int offset, final int limit) {
 		Object retList = RedisClient.getInstance().execute(new RedisCallable<Set<String>>() {
@@ -149,6 +171,27 @@ public class RedisClient {
 		
 		return ((Long)result).intValue();
 	}
+
+    public boolean hset(final String key, final String field, final String value){
+        Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+                if (key == null || field == null || value == null){
+                    log.error("<RedisClient> HSET but key or field or value is null");
+                    return Boolean.FALSE;
+                }
+
+                jedis.hset(key, field, value);
+                log.info("<RedisClient> hset "+field+","+value+" HSET @"+key);
+                return Boolean.TRUE;
+            }
+        });
+
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+    }
 	
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
@@ -246,7 +289,4 @@ public class RedisClient {
 	}
 
 
-
-
-	
 }
