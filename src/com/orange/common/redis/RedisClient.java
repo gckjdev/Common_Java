@@ -15,7 +15,8 @@ import redis.clients.jedis.Transaction;
 
 public class RedisClient {
 
-	static Logger log = Logger.getLogger(RedisClient.class.getName()); 
+    public static final int RANK_NOT_FOUND = -1;
+    static Logger log = Logger.getLogger(RedisClient.class.getName());
 	JedisPool pool = null; 	
 	static RedisClient defaultClient = new RedisClient();
 	
@@ -172,6 +173,24 @@ public class RedisClient {
 		return ((Long)result).intValue();
 	}
 
+
+
+    public int zrevrank(final String key, final String member) {
+        Object result = (Object)execute(new RedisCallable<Long>() {
+            @Override
+            public Long call(Jedis jedis) {
+                Long rank = jedis.zrevrank(key, member);
+                log.info("<RedisClient> rank = "+rank+" ZREVRANK @"+key);
+                return rank;
+            }
+        });
+
+        if (result == null)
+            return RANK_NOT_FOUND;
+
+        return ((Long)result).intValue();
+    }
+
     public boolean hset(final String key, final String field, final String value){
         Object result = (Boolean)execute(new RedisCallable<Boolean>() {
             @Override
@@ -287,6 +306,7 @@ public class RedisClient {
 		}, 1, interval, TimeUnit.SECONDS);
 		
 	}
+
 
 
 }
