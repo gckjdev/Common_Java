@@ -143,4 +143,17 @@ public class DateUtil {
 		return 0;
 	}
 
+    public static Date getDateOfToday(int hour, int minus, int second){
+
+        TimeZone timeZone = TimeZone.getTimeZone("GMT+0800");
+        Calendar now = Calendar.getInstance(timeZone);
+        now.setTime(new Date());
+
+        now.set(Calendar.HOUR_OF_DAY, hour);
+        now.set(Calendar.MINUTE, minus);
+        now.set(Calendar.SECOND, second);
+        now.set(Calendar.MILLISECOND, 0);
+
+        return now.getTime();
+    }
 }
