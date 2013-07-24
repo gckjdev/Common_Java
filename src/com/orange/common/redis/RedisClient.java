@@ -211,7 +211,26 @@ public class RedisClient {
 
         return ((Boolean)result).booleanValue();
     }
-	
+
+    public String hget(final String key, final String field) {
+        String result = (String)execute(new RedisCallable<String>() {
+            @Override
+            public String call(Jedis jedis) {
+                if (key == null || field == null){
+                    log.error("<RedisClient> HGET but key or field is null");
+                    return null;
+                }
+
+                String value = jedis.hget(key, field);
+                log.info("<RedisClient> HGET "+field+","+value+" HSET @"+key+", value="+value);
+                return value;
+            }
+        });
+
+        return result;
+    }
+
+
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
 //			@Override
@@ -306,7 +325,5 @@ public class RedisClient {
 		}, 1, interval, TimeUnit.SECONDS);
 		
 	}
-
-
 
 }
