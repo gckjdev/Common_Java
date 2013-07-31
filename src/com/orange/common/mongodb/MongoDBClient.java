@@ -411,6 +411,11 @@ public class MongoDBClient {
 		if (query == null)
 			return null;
 
+        if (limit <= 0){
+            log.warn(String.format("<findOneWithArrayLimit> invalid limit(%d), return null", limit));
+            return null;
+        }
+
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;

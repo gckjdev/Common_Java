@@ -145,7 +145,8 @@ public class DateUtil {
 
     public static Date getDateOfToday(int hour, int minus, int second){
 
-        TimeZone timeZone = TimeZone.getTimeZone("GMT+0800");
+        TimeZone timeZone = TimeZone.getDefault();
+
         Calendar now = Calendar.getInstance(timeZone);
         now.setTime(new Date());
 
