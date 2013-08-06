@@ -230,6 +230,38 @@ public class RedisClient {
         return result;
     }
 
+    public int hinc(final String key, final String field, final int increment) {
+        Object result = (Object)execute(new RedisCallable<Long>() {
+            @Override
+            public Long call(Jedis jedis) {
+            Long val = jedis.hincrBy(key, field, increment);
+            log.info("<RedisClient> field = "+field+ " incby "+increment+" HINC @"+key);
+            return val;
+            }
+        });
+
+        if (result == null)
+            return 0;
+
+        return ((Long)result).intValue();
+    }
+
+    public boolean sismember(final String key, final String member) {
+        Object result = (Object)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+                Boolean result = jedis.sismember(key, member);
+                log.info("<RedisClient> field = "+member+ " SISMEMBER @"+key+", result="+result);
+                return result;
+            }
+        });
+
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+    }
+
 
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
