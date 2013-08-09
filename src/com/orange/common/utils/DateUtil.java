@@ -157,4 +157,11 @@ public class DateUtil {
 
         return now.getTime();
     }
+
+    public static Date getDateBeforeToday(int nDay){
+
+        long currentTime = DateUtil.getCurrentTime();
+        Date date = new Date(currentTime - nDay * 24 * 3600 * 1000);
+        return date;
+    }
 }
