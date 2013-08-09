@@ -230,17 +230,31 @@ public class RedisClient {
         return result;
     }
 
-    public boolean sadd(final String key, final String member) {
-        Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+
+    public int hinc(final String key, final String field, final int increment) {
+        Object result = (Object)execute(new RedisCallable<Long>() {
+            @Override
+            public Long call(Jedis jedis) {
+            Long val = jedis.hincrBy(key, field, increment);
+            log.info("<RedisClient> field = "+field+ " incby "+increment+" HINC @"+key);
+            return val;
+            }
+        });
+
+        if (result == null)
+            return 0;
+
+        return ((Long)result).intValue();
+    }
+
+    public boolean sismember(final String key, final String member) {
+        Object result = (Object)execute(new RedisCallable<Boolean>() {
             @Override
             public Boolean call(Jedis jedis) {
-            if (key == null || member == null){
-                log.error("<RedisClient> SADD but key or member is null");
-                return Boolean.FALSE;
-            }
-            Long count = jedis.sadd(key, member);
-            log.info("<RedisClient> "+member+" " + count + " SADD @"+key);
-            return Boolean.TRUE;
+                Boolean result = jedis.sismember(key, member);
+                log.info("<RedisClient> field = "+member+ " SISMEMBER @"+key+", result="+result);
+                return result;
+
             }
         });
 
@@ -250,7 +264,25 @@ public class RedisClient {
         return ((Boolean)result).booleanValue();
     }
 
+    public boolean sadd(final String key, final String member) {
+        Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+                if (key == null || member == null){
+                    log.error("<RedisClient> SADD but key or member is null");
+                    return Boolean.FALSE;
+                }
+                Long count = jedis.sadd(key, member);
+                log.info("<RedisClient> "+member+" " + count + " SADD @"+key);
+                return Boolean.TRUE;
+            }
+        });
 
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+    }
 
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
