@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.orange.common.scheduler.ScheduleService;
 import org.apache.log4j.Logger;
 
 import redis.clients.jedis.Jedis;
@@ -20,7 +21,7 @@ public class RedisClient {
 	JedisPool pool = null; 	
 	static RedisClient defaultClient = new RedisClient();
 	
-	final private ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(1);	
+//	final private ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(1);
 	
 	private RedisClient(){
 		
@@ -319,63 +320,118 @@ public class RedisClient {
 
 	public void scheduleRemoveRecordAfterZSetTop(final String key, final int maxCount, final int interval) {
 
-		scheduleService.scheduleAtFixedRate(new Runnable() {
+        ScheduleService.getInstance().scheduleEverySecond(interval, new Runnable() {
 
-			@Override
-			public void run() {
-				// clean useless data
-				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+            @Override
+            public void run() {
+                // clean useless data
+                RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
 
-					@Override
-					public Boolean call(Jedis jedis) {				
-						Long removeCount = jedis.zremrangeByRank(key, 0, -maxCount);
-						log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
-						return Boolean.TRUE;
-					}
-					
-				});
-				return;
-			}
-		}, 1, interval, TimeUnit.SECONDS);
+                    @Override
+                    public Boolean call(Jedis jedis) {
+                        Long removeCount = jedis.zremrangeByRank(key, 0, -maxCount);
+                        log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+                        return Boolean.TRUE;
+                    }
+
+                });
+                return;
+            }
+        });
+
+
+//		scheduleService.scheduleAtFixedRate(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				// clean useless data
+//				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+//
+//					@Override
+//					public Boolean call(Jedis jedis) {
+//						Long removeCount = jedis.zremrangeByRank(key, 0, -maxCount);
+//						log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+//						return Boolean.TRUE;
+//					}
+//
+//				});
+//				return;
+//			}
+//		}, 1, interval, TimeUnit.SECONDS);
 		
 	}
 	
 	public void scheduleRemoveRecordAfterListTop(final String key, final int maxCount, final int interval) {
 
-		scheduleService.scheduleAtFixedRate(new Runnable() {
+        ScheduleService.getInstance().scheduleEverySecond(interval, new Runnable() {
 
-			@Override
-			public void run() {
-				// clean useless data
-				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+            @Override
+            public void run() {
+                // clean useless data
+                RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
 
-					@Override
-					public Boolean call(Jedis jedis) {			
-						
-						Long count = jedis.llen(key);
-						if (count == null){
-							return Boolean.FALSE;
-						}
-						
-						if (count.intValue() <= maxCount){
-							return Boolean.TRUE;
-						}
-						
-						int popCount = count.intValue() - maxCount;
-						
-						Transaction transaction = jedis.multi();
-						for (int i=0; i<popCount; i++){
-							transaction.rpop(key);
-						}
-						transaction.exec();
-						log.info("<RedisClient> "+popCount+" CLEANED @"+key);
-						return Boolean.TRUE;
-					}
-					
-				});
-				return;
-			}
-		}, 1, interval, TimeUnit.SECONDS);
+                    @Override
+                    public Boolean call(Jedis jedis) {
+
+                        Long count = jedis.llen(key);
+                        if (count == null){
+                            return Boolean.FALSE;
+                        }
+
+                        if (count.intValue() <= maxCount){
+                            return Boolean.TRUE;
+                        }
+
+                        int popCount = count.intValue() - maxCount;
+
+                        Transaction transaction = jedis.multi();
+                        for (int i=0; i<popCount; i++){
+                            transaction.rpop(key);
+                        }
+                        transaction.exec();
+                        log.info("<RedisClient> "+popCount+" CLEANED @"+key);
+                        return Boolean.TRUE;
+                    }
+
+                });
+                return;
+            }
+        });
+
+//		scheduleService.scheduleAtFixedRate(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				// clean useless data
+//				RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+//
+//					@Override
+//					public Boolean call(Jedis jedis) {
+//
+//						Long count = jedis.llen(key);
+//						if (count == null){
+//							return Boolean.FALSE;
+//						}
+//
+//						if (count.intValue() <= maxCount){
+//							return Boolean.TRUE;
+//						}
+//
+//						int popCount = count.intValue() - maxCount;
+//
+//						Transaction transaction = jedis.multi();
+//						for (int i=0; i<popCount; i++){
+//							transaction.rpop(key);
+//						}
+//						transaction.exec();
+//						log.info("<RedisClient> "+popCount+" CLEANED @"+key);
+//						return Boolean.TRUE;
+//					}
+//
+//				});
+//				return;
+//			}
+//		}, 1, interval, TimeUnit.SECONDS);
 		
 	}
 
