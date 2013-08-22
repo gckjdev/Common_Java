@@ -191,6 +191,22 @@ public class RedisClient {
         return ((Long)result).intValue();
     }
 
+    public int zrank(final String key, final String member) {
+        Object result = (Object)execute(new RedisCallable<Long>() {
+            @Override
+            public Long call(Jedis jedis) {
+                Long rank = jedis.zrank(key, member);
+                log.info("<RedisClient> rank = "+rank+" ZRANK @"+key);
+                return rank;
+            }
+        });
+
+        if (result == null)
+            return RANK_NOT_FOUND;
+
+        return ((Long)result).intValue();
+    }
+
     public boolean hset(final String key, final String field, final String value){
         Object result = (Boolean)execute(new RedisCallable<Boolean>() {
             @Override

@@ -434,6 +434,7 @@ public class MongoDBClient {
 				}
 			}
 		}
+        log.info("<findInArray> query="+query.toString()+", returnFields="+field.toString());
 		return collection.findOne(query, field);
 	}
 	
