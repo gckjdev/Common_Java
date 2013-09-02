@@ -792,6 +792,7 @@ public class MongoDBClient {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
 			return null;
+        log.info("<findAll> table="+tableName+",query="+query+"fields="+returnFields);
 		return collection.find(query, returnFields);
 	}
 

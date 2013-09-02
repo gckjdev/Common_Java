@@ -5,10 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
@@ -262,4 +259,18 @@ public class StringUtil {
 		ServerLog.info(0, "5. desaulted: userName = "+deIntersetTwoStrings(decodedSaultedUserName,saultForUserName)
 	    + ", passWord = "+deIntersetTwoStrings(decodedSaultedPassWord,saultForPassWord));
 	}
+
+    public static List<Integer> stringArrayToIntList(String[] strings) {
+
+        if (strings == null || strings.length == 0)
+            return Collections.emptyList();
+
+        List<Integer> retList = new ArrayList<Integer>(strings.length);
+        for (int i=0; i<strings.length; i++){
+            retList.add(Integer.parseInt(strings[i]));
+        }
+
+        return retList;
+
+    }
 }
