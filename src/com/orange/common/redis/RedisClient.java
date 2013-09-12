@@ -301,6 +301,26 @@ public class RedisClient {
         return ((Boolean)result).booleanValue();
     }
 
+    public boolean del(final String key) {
+        Object result = (Boolean)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+            if (key == null){
+                log.error("<RedisClient> DEL but key is null");
+                return Boolean.FALSE;
+            }
+            Long count = jedis.del(key);
+            log.info("<RedisClient> DEL @"+key);
+            return Boolean.TRUE;
+            }
+        });
+
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+    }
+
 //	public void hset(final String table, final String key, final String hashKey, final String hashValue){
 //		execute(new RedisCallable() {			
 //			@Override
