@@ -32,6 +32,15 @@ public class DateUtil {
 		return dateFormat.format(date);
 	}
 
+    public static String dateToChineseStringByFormat(Date date, String format) {
+        if (date == null || format == null)
+            return null;
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        dateFormat.setTimeZone(TimeZone.getTimeZone(CHINA_TIMEZONE));
+        return dateFormat.format(date);
+    }
+
 	public static Date dateFromString(String dateString){
 		return dateFromStringByFormat(dateString, DATE_FORMAT);
 	}
