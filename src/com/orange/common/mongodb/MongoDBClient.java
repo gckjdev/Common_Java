@@ -315,6 +315,30 @@ public class MongoDBClient {
 		collection.update(query, update, false, true);
 	}
 
+    public void updateAllByDBObject(String tableName, ObjectId objectId, DBObject updateValue) {
+        DBCollection collection = db.getCollection(tableName);
+        if (collection == null || objectId == null || updateValue == null || updateValue.keySet().size() == 0){
+            log.warn("<updateAll> incorrect data! table="+tableName+", objectId = " + objectId + ", updateValue = " + updateValue);
+            return;
+        }
+
+        BasicDBObject query = new BasicDBObject("_id", objectId);
+        BasicDBObject update = new BasicDBObject("$set", updateValue);
+
+        log.info("<updateAll> "+tableName+" query = " + query.toString() + ", update = " + update.toString());
+        collection.update(query, update, false, true);
+    }
+
+    public void updateAllByDBObject(String tableName, String stringObjectId, DBObject updateValue) {
+        DBCollection collection = db.getCollection(tableName);
+        if (collection == null || stringObjectId == null || updateValue == null || updateValue.keySet().size() == 0 || !ObjectId.isValid(stringObjectId)){
+            log.warn("<updateAll> incorrect data! table="+tableName+", objectId = " + stringObjectId + ", updateValue = " + updateValue);
+            return;
+        }
+
+        updateAllByDBObject(tableName, new ObjectId(stringObjectId), updateValue);
+    }
+
 	public void upsertAll(String tableName, DBObject query, DBObject update) {
 		DBCollection collection = db.getCollection(tableName);
 		if (collection == null)
