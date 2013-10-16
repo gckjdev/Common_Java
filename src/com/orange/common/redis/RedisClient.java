@@ -96,6 +96,29 @@ public class RedisClient {
 
     }
 
+    @SuppressWarnings("unchecked")
+    public Set<String> zbelowScore(final String key, final double score) {
+            Object retList = RedisClient.getInstance().execute(new RedisCallable<Set<String>>() {
+
+                    @Override
+                    public Set<String> call(Jedis jedis) {
+                            
+                            Set<String> set = jedis.zrangeByScore(key, Double.MIN_VALUE, score, 0, Integer.MAX_VALUE);
+                            if (set != null){
+                                    return set;
+                            }
+                            
+                            return Collections.emptySet();
+                    }
+                    
+            });
+            
+            if (retList == null)
+                    return Collections.emptySet();
+            
+            return (Set<String>)retList;
+    }
+
 
     // get TOP N
 	@SuppressWarnings("unchecked")
@@ -281,6 +304,27 @@ public class RedisClient {
         return ((Boolean)result).booleanValue();
     }
 
+    public boolean zismember(final String key, final String member) {
+        Object result = (Object)execute(new RedisCallable<Boolean>() {
+            @Override
+            public Boolean call(Jedis jedis) {
+                Object result = jedis.zscore(key, member);
+                if(result == null){
+                    return Boolean.FALSE;
+                }
+                log.info("<RedisClient> field = "+member+ " SISMEMBER @"+key+", result="+result);
+                return Boolean.TRUE;
+
+            }
+        });
+
+        if (result == null)
+            return false;
+
+        return ((Boolean)result).booleanValue();
+    }
+
+
     public boolean sadd(final String key, final String member) {
         Object result = (Boolean)execute(new RedisCallable<Boolean>() {
             @Override
@@ -373,7 +417,23 @@ public class RedisClient {
                 });
                 return;
             }
+
+	public void zremoveByScore(final String key, final double minScore, final double maxScore) {
+
+                // clean useless data
+                RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+
+                    @Override
+                    public Boolean call(Jedis jedis) {
+                        Long removeCount = jedis.zremrangeByScore(key, minScore, maxCount);
+                        log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+                        return Boolean.TRUE;
+                    }
+
+                });
+            }
         });
+
 
 
 //		scheduleService.scheduleAtFixedRate(new Runnable() {
