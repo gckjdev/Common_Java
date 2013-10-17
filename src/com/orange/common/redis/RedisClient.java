@@ -143,7 +143,9 @@ public class RedisClient {
 		
 		return (Set<String>)retList;
 	}
-	
+
+
+
 	public boolean zrem(final String key, final String member) {
 		Object result = (Boolean)execute(new RedisCallable<Boolean>() {
 			@Override
@@ -398,6 +400,22 @@ public class RedisClient {
 		}
 	}
 
+    public void zremRangeByScore(final String key, final double minScore, final double maxScore) {
+
+        // clean useless data
+        RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
+
+            @Override
+            public Boolean call(Jedis jedis) {
+                Long removeCount = jedis.zremrangeByScore(key, minScore, maxScore);
+                log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
+                return Boolean.TRUE;
+            }
+
+        });
+    }
+
+
 	public void scheduleRemoveRecordAfterZSetTop(final String key, final int maxCount, final int interval) {
 
         ScheduleService.getInstance().scheduleEverySecond(interval, new Runnable() {
@@ -417,22 +435,8 @@ public class RedisClient {
                 });
                 return;
             }
-
-	public void zremoveByScore(final String key, final double minScore, final double maxScore) {
-
-                // clean useless data
-                RedisClient.getInstance().execute(new RedisCallable<Boolean>() {
-
-                    @Override
-                    public Boolean call(Jedis jedis) {
-                        Long removeCount = jedis.zremrangeByScore(key, minScore, maxCount);
-                        log.info("<RedisClient> "+removeCount+" CLEANED @"+key);
-                        return Boolean.TRUE;
-                    }
-
-                });
-            }
         });
+
 
 
 
@@ -531,4 +535,7 @@ public class RedisClient {
 		
 	}
 
+
 }
+
+
