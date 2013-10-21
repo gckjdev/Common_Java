@@ -163,8 +163,14 @@ public class DateUtil {
         now.set(Calendar.MINUTE, minus);
         now.set(Calendar.SECOND, second);
         now.set(Calendar.MILLISECOND, 0);
-
         return now.getTime();
+    }
+
+    public  static  boolean isTodayWeekDay(int weekDay){
+        TimeZone timeZone = TimeZone.getDefault();
+        Calendar now = Calendar.getInstance(timeZone);
+        now.setTime(new Date());
+        return  (now.get(Calendar.DAY_OF_WEEK) == weekDay);
     }
 
     public static Date getDateBeforeToday(int nDay){

@@ -306,6 +306,17 @@ public class RedisClient {
         return ((Boolean)result).booleanValue();
     }
 
+    public double zscore(final String key, final String member){
+
+        Double result = (Double) execute(new RedisCallable<Double>() {
+            @Override
+            public Double call(Jedis jedis) {
+                return jedis.zscore(key, member);
+            }
+        });
+        return result;
+    }
+
     public boolean zismember(final String key, final String member) {
         Object result = (Object)execute(new RedisCallable<Boolean>() {
             @Override
