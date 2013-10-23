@@ -1,30 +1,15 @@
 package com.orange.common.mongodb;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.mongodb.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.bson.BSON;
 import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.MongoException;
-import com.mongodb.MongoOptions;
-import com.mongodb.ServerAddress;
-import com.mongodb.WriteResult;
 import com.orange.common.log.ServerLog;
 import com.orange.common.utils.StringUtil;
 
@@ -851,6 +836,36 @@ public class MongoDBClient {
         else{
             log.info("<createIndex> "+tableName+", index="+index.toString());
             collection.ensureIndex(index);
+        }
+    }
+
+    public List<DBObject> fullTextSearch(String tableName, String keyWord, BasicDBObject filter, int limit) {
+        DBObject searchCmd = new BasicDBObject();
+        searchCmd.put("text", tableName); // the name of the collection (string)
+        searchCmd.put("search", keyWord); // the term to search for (string)
+        searchCmd.put("limit", limit); 
+
+        if (filter != null){
+            searchCmd.put("filter", filter);
+        }
+        CommandResult commandResult = db.command(searchCmd);
+
+        try {
+            List <DBObject> retList = new ArrayList<DBObject>();
+            BasicDBList results = (BasicDBList )commandResult.get("results");
+            int count = results.size();
+            for (int i = 0; i < count; ++ i){
+                DBObject result = (DBObject)results.get(i);
+                DBObject obj = (DBObject)result.get("obj");
+                if (obj != null){
+                    retList.add(obj);
+                }
+            }
+            return retList;
+
+        }catch (Exception e){
+            log.info("<fullTextSearch> catch an exception = "+e);
+            return Collections.emptyList();
         }
     }
 }
