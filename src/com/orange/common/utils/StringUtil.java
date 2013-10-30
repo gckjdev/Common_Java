@@ -273,4 +273,8 @@ public class StringUtil {
         return retList;
 
     }
+
+    public static String getEmptyStringWhenNull(String string) {
+        return (string == null) ? "" : string;
+    }
 }

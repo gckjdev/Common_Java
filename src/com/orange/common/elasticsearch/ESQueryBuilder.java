@@ -23,8 +23,10 @@ import com.orange.common.log.ServerLog;
 
 public class ESQueryBuilder {
 
+        private final static String host = "192.168.13.89";
+        // private final static String host = "localhost";
 	private final static Client client = new TransportClient()
-	   .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+	   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
 	
 	private static String CHINESE_ANALYZER = "ik"; // ElasticSearch中文分词插件: ik
 	
@@ -49,7 +51,7 @@ public class ESQueryBuilder {
 		}
 		
 		
-		SearchResponse searchResponse = client.prepareSearch(indexName)   
+		SearchResponse searchResponse = client.prepareSearch(indexName)
     		  							.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
     		  							.setQuery(QueryBuilders.matchQuery(field, textVal)) 
     		  							.setFrom(start).setSize(offset).setExplain(true)   
@@ -106,7 +108,7 @@ public class ESQueryBuilder {
 	 * @param offset        : how many result to be returned.
 	 */
 	public static SearchResponse searchByQueryString(String indexName, List<String> candidateFields,
-			String textVal, int start, int offset) {
+			String textVal, int start, int offset, String ...indexType) {
 		
 		if ( indexName == null || candidateFields.isEmpty() || textVal == null ) {
 			ServerLog.info(0, "Please input proper arguments to search");
@@ -127,7 +129,7 @@ public class ESQueryBuilder {
 			qb.field(candidateField);
 		}
 		ServerLog.info(0, "<searchByQueryString> ES query string=" + qb.toString());
-		SearchResponse searchResponse = client.prepareSearch(indexName)   
+		SearchResponse searchResponse = client.prepareSearch(indexName).setTypes(indexType)
 					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 					.setQuery(qb) 
 					.setFrom(start).setSize(offset).setExplain(true)   

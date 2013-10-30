@@ -19,8 +19,10 @@ public class ESIndexBuilder {
 
 	private ESIndexBuilder() {}
 	
+       private final static String host = "192.168.13.89";
+        // private final static String host = "localhost";
 	private final static Client client = new TransportClient()
-	   .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+	   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
 	public final static String INDEX_NAME = "mongoindex";
 	
 	/**
@@ -39,7 +41,7 @@ public class ESIndexBuilder {
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "gckj").build();
 		Client client = new TransportClient(settings)
-		   .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
 		
 		String type;
 		if ( indexType == null)
@@ -97,21 +99,40 @@ public class ESIndexBuilder {
 			ServerLog.warn(0, "Imcomplete arguments , fails to index!");
 			return false;
 		}
+
+		// ServerLog.info(0, "<createIndexInES> json = "+jsonDoc+", indexName = "+indexName+", indexType = "+indexType+", id = "+id);
 		
 		IndexResponse response = client.prepareIndex(indexName, indexType, id)
 									   .setSource(jsonDoc)
 		                               .execute()
 		                               .actionGet(); 
 		
+
+
+
 		if ( ! response.getIndex().equals(indexName)){
 			ServerLog.warn(0, "response.getIndex = " + response.getIndex() +", indexName = " + indexName);
 			return false;
-		}
+		}else{
+                    ServerLog.info(0, "<indexByRawAPI> create index. index type = "+indexType);
+                }
 		return true;
-	
 	}
 	
-	
+
+    public static boolean deleteByRawAPI(String indexName, String indexType, String id) {
+        if (indexName == null || indexType == null || id == null){
+            ServerLog.warn(0, "Imcomplete arguments , fails to delete!");
+            return false;
+        }
+
+        boolean ret = client.prepareDelete(indexName, indexType, id).execute().actionGet().isNotFound();
+        if (!ret){
+            ServerLog.warn(0, "record not found! , fails to delete!");
+        }
+        return ret;
+    }
+
 	/**
 	 * 更新某一个索引文档的某一字段  
 	 * @param  updateField 待更新的字段
