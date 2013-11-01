@@ -23,8 +23,6 @@ import com.orange.common.log.ServerLog;
 
 public class ESQueryBuilder {
 
-    private final static Client client = ESService.getInstance().getClient();
-
 	/**
 	 *  Search by a text, return all responses which have tokens within the text. 
 	 *  
@@ -34,7 +32,9 @@ public class ESQueryBuilder {
 	 *  @param offset: how many result to be returned.
 	 *  */
 	public static SearchResponse searchByField(String indexName, String field, String textVal, int start, int offset) {
-		
+
+        Client client = ESService.getInstance().getClient();
+
 		if ( indexName == null || field == null || textVal == null ) {
 			ServerLog.info(0, "Please input proper arguments to search.");
 			return null;
@@ -71,7 +71,9 @@ public class ESQueryBuilder {
 	 **/
 	public static SearchResponse searchByWildcard(String indexName, String field, String wildcardString,
 			                                   int start, int offset) {
-		
+
+        Client client = ESService.getInstance().getClient();
+
 		if ( indexName == null || field == null || wildcardString == null ) {
 			ServerLog.info(0, "Please input proper arguments to search");
 			return null;
@@ -104,7 +106,9 @@ public class ESQueryBuilder {
 	 */
 	public static SearchResponse searchByQueryString(String indexName, List<String> candidateFields,
 			String textVal, int start, int offset, String ...indexType) {
-		
+
+        Client client = ESService.getInstance().getClient();
+
 		if ( indexName == null || candidateFields.isEmpty() || textVal == null ) {
 			ServerLog.info(0, "<searchByQueryString> Please input proper arguments to search");
 			return null;
@@ -132,7 +136,7 @@ public class ESQueryBuilder {
 					.actionGet();
 
         if (searchResponse != null){
-            ServerLog.info(0, "<searchByQueryString> result =" + searchResponse.toString());
+            ServerLog.debug(0, "<searchByQueryString> result =" + searchResponse.toString());
         }
 
 		return searchResponse;
@@ -151,7 +155,9 @@ public class ESQueryBuilder {
 	 */
 	public static MultiSearchResponse searchByMultiMatch(String indexName, List<String> candidateFields,
 					String textVal, int start, int offset) {
-		
+
+        Client client = ESService.getInstance().getClient();
+
 		if ( indexName == null || candidateFields.isEmpty() || textVal == null ) {
 			ServerLog.info(0, "Please input proper arguments to search");
 			return null;

@@ -17,17 +17,15 @@ public class ESService {
     public static String CHINESE_ANALYZER = "ik"; // ElasticSearch中文分词插件: ik
 
     private static ESService ourInstance = new ESService();
-
-    static Logger log = Logger.getLogger(ESService.class.getName());
-    private String address;
-    private Client client;
+    private Logger log = Logger.getLogger(ESService.class.getName());
+    private final Client client;
 
     public static ESService getInstance() {
         return ourInstance;
     }
 
     private ESService() {
-        address = System.getProperty("es.address");
+        String address = System.getProperty("es.address");
         if (address == null) {
             address = "127.0.0.1";
         }
@@ -37,8 +35,8 @@ public class ESService {
             port = "9300";
         }
 
-        client = new TransportClient().addTransportAddress(new InetSocketTransportAddress(address, Integer.parseInt(port)));
         log.info("Start elastic search node client on address "+address+", port "+port);
+        client = new TransportClient().addTransportAddress(new InetSocketTransportAddress(address, Integer.parseInt(port)));
     }
 
     public Client getClient(){

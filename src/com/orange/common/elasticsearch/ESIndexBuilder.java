@@ -19,8 +19,6 @@ public class ESIndexBuilder {
 
 	private ESIndexBuilder() {}
 
-    private final static Client client = ESService.getInstance().getClient();
-
 	/**
 	 *  这个利用mongodb-river插件来索引我们的数据库
 	 * @param dbName　    要索引的数据库名
@@ -30,6 +28,8 @@ public class ESIndexBuilder {
 	 * @return
 	 */
 	public static IndexResponse indexByMongodbRiver(String dbName, String collection, String indexName, String indexType) {
+
+        Client client = ESService.getInstance().getClient();
 
 		if (dbName == null || collection == null || indexName == null) 
 			return null;
@@ -90,8 +90,10 @@ public class ESIndexBuilder {
 	 * @return 
 	 */
 	public static boolean indexByRawAPI(String jsonDoc, String indexName, String indexType, String id) {
-	
-		if (jsonDoc == null || indexName == null || indexType == null || id == null){
+
+        Client client = ESService.getInstance().getClient();
+
+        if (jsonDoc == null || indexName == null || indexType == null || id == null){
 			ServerLog.warn(0, "Imcomplete arguments , fails to index!");
 			return false;
 		}
@@ -117,6 +119,9 @@ public class ESIndexBuilder {
 	
 
     public static boolean deleteByRawAPI(String indexName, String indexType, String id) {
+
+        Client client = ESService.getInstance().getClient();
+
         if (indexName == null || indexType == null || id == null){
             ServerLog.warn(0, "Imcomplete arguments , fails to delete!");
             return false;
@@ -140,8 +145,10 @@ public class ESIndexBuilder {
 	 */
 	public static boolean updateIndex(Object updateField, Object updateValue,
 			 String indexName, String indexType, String id) {
-		
-		if (updateField == null || updateValue == null || id == null) {
+
+        Client client = ESService.getInstance().getClient();
+
+        if (updateField == null || updateValue == null || id == null) {
 			ServerLog.warn(0, "Nothing to be updated!");
 			return false;
 		}
