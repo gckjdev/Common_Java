@@ -21,6 +21,7 @@ public class FileUtils {
 	public static String stringFromFile(File file) {
 
 		if (file == null || !file.exists()) {
+            log.error("<stringFromFile> but file is null or file not exists!");
 			return null;
 		}
 
@@ -30,10 +31,12 @@ public class FileUtils {
 			String str = null;
 			while ((str = in.readLine()) != null) {
 				builder.append(str);
+                builder.append("\n");
 			}
 			in.close();
 			return builder.toString();
 		} catch (Exception e) {
+            log.error("<stringFromFile> catch exception="+e.toString(), e);
 			return null;
 		}
 	}

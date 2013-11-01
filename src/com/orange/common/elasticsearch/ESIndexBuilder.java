@@ -18,13 +18,9 @@ import com.orange.common.log.ServerLog;
 public class ESIndexBuilder {
 
 	private ESIndexBuilder() {}
-	
-       private final static String host = "192.168.13.89";
-        // private final static String host = "localhost";
-	private final static Client client = new TransportClient()
-	   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
-	public final static String INDEX_NAME = "mongoindex";
-	
+
+    private final static Client client = ESService.getInstance().getClient();
+
 	/**
 	 *  这个利用mongodb-river插件来索引我们的数据库
 	 * @param dbName　    要索引的数据库名
@@ -40,8 +36,8 @@ public class ESIndexBuilder {
 		
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "gckj").build();
-		Client client = new TransportClient(settings)
-		   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
+//		Client client = new TransportClient(settings)
+//		   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
 		
 		String type;
 		if ( indexType == null)

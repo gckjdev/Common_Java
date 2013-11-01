@@ -23,17 +23,12 @@ import com.orange.common.log.ServerLog;
 
 public class ESQueryBuilder {
 
-        private final static String host = "192.168.13.89";
-        // private final static String host = "localhost";
-	private final static Client client = new TransportClient()
-	   .addTransportAddress(new InetSocketTransportAddress(host, 9300));
-	
-	private static String CHINESE_ANALYZER = "ik"; // ElasticSearch中文分词插件: ik
-	
+    private final static Client client = ESService.getInstance().getClient();
+
 	/**
 	 *  Search by a text, return all responses which have tokens within the text. 
 	 *  
-	 *  @param filed : the field to search
+	 *  @param field : the field to search
 	 *  @param textVal : the text to match
 	 *  @param start : the start index of response we are interested ins
 	 *  @param offset: how many result to be returned.
@@ -66,8 +61,8 @@ public class ESQueryBuilder {
 	 *   ? for a single character.
 	 *  
 	 *  @param indexName: the index name
-	 *  @param filed    : the field to search
-	 *  @param value    : the wildcard string value to match
+	 *  @param field    : the field to search
+	 *  @param wildcardString    : the wildcard string value to match
 	 *  @param start    : the start index of response we are interested in
 	 *  @param offset   : how many result to be returned.
 	 *  
@@ -102,7 +97,7 @@ public class ESQueryBuilder {
 	 * Search textVal in mutiple fields, specific in candidateFields.
 	 * 
 	 * @param indexName     : the index name 
-	 * @param cadidateFields: a list of fields to consider 
+	 * @param candidateFields: a list of fields to consider
 	 * @param textVal       : the text value to search
 	 * @param start         : the start index of response we are interested in
 	 * @param offset        : how many result to be returned.
@@ -111,18 +106,18 @@ public class ESQueryBuilder {
 			String textVal, int start, int offset, String ...indexType) {
 		
 		if ( indexName == null || candidateFields.isEmpty() || textVal == null ) {
-			ServerLog.info(0, "Please input proper arguments to search");
+			ServerLog.info(0, "<searchByQueryString> Please input proper arguments to search");
 			return null;
 		}
 		
 		if (start < 0 || offset < 0) {
-			ServerLog.info(0, "Please input a positive start and offset.");
+			ServerLog.info(0, "<searchByQueryString> Please input a positive start and offset.");
 			return null;
 		}
 		
 		QueryStringQueryBuilder qb = QueryBuilders.queryString(textVal)
 									.defaultOperator(Operator.OR) // OR操作,结果必须出现textVal中所有单词
-									.analyzer(CHINESE_ANALYZER) // 指定中文分词器
+									.analyzer(ESService.CHINESE_ANALYZER) // 指定中文分词器
 									.useDisMax(true); // 所有搜索结果要组合
 		
 		for (String candidateField : candidateFields) {
@@ -135,7 +130,11 @@ public class ESQueryBuilder {
 					.setFrom(start).setSize(offset).setExplain(true)   
 					.execute()   
 					.actionGet();
-		
+
+        if (searchResponse != null){
+            ServerLog.info(0, "<searchByQueryString> result =" + searchResponse.toString());
+        }
+
 		return searchResponse;
 	}
 	
@@ -145,7 +144,7 @@ public class ESQueryBuilder {
 	 *  
 	 *   
 	 * @param indexName     : the index name 
-	 * @param cadidateFields: a list of fields to consider 
+	 * @param candidateFields: a list of fields to consider
 	 * @param textVal       : the text value to search
 	 * @param start         : the start index of response we are interested in
 	 * @param offset        : how many result to be returned. 
