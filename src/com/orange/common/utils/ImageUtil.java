@@ -1,95 +1,63 @@
 package com.orange.common.utils;
 
-//import java.awt.Image;
-//import java.awt.image.BufferedImage;
-//import java.io.File;
-//import java.io.FileOutputStream;
-//import java.io.IOException;
-//
-//import javax.imageio.ImageIO;
-//
-////import com.sun.image.codec.jpeg.JPEGCodec;
-////import com.sun.image.codec.jpeg.JPEGImageEncoder;
-//
-//public class ImageUtil {
-//
-//	private static String SmallImageSuffix = "_s.png";
-//
-//	private static String getSmallImageName(File imageFile) {
-//		if (imageFile == null)
-//			return null;
-//		String imageName = imageFile.getAbsolutePath();
-//		int index = imageName.lastIndexOf(".");
-//		if (index < 0)
-//			return null;
-//		String smallImageName = imageName.substring(0, index)
-//				+ SmallImageSuffix;
-//		return smallImageName;
-//	}
-//
-//	public static String getSmallImagePath(String httpPath){
-//		int index = httpPath.lastIndexOf(".");
-//		if (index < 0)
-//			return null;
-//		String smallImageName = httpPath.substring(0, index)
-//				+ SmallImageSuffix;
-//		return smallImageName;
-//	}
-//	
-//	public static File setImageSize(File imageFile, int height){
-//		Image src = null;
-//		File outFile = null;
-//		try {
-//			src = ImageIO.read(imageFile);
-//			int oWidth = src.getWidth(null);
-//			int oHeight = src.getHeight(null);
-//			int width = oWidth * height / oHeight;
-//			String name = getSmallImageName(imageFile);
-//			outFile = setImageSize(imageFile, width, height, name);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			return null;
-//		}
-//		return outFile;
-//	}
-//	public static File setImageSize(File imageFile, double scale) {
-//		Image src = null;
-//		File outFile = null;
-//		try {
-//			src = ImageIO.read(imageFile);
-//			int width = src.getWidth(null);
-//			int height = src.getHeight(null);
-//			width = (int) Math.round(width * scale);
-//			height = (int) Math.round(height * scale);
-//			String name = getSmallImageName(imageFile);
-//			outFile = setImageSize(imageFile, width, height, name);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			return null;
-//		}
-//		return outFile;
-//	}
-//
-//	public static File setImageSize(File imageFile, int width, int height,
-//			String outImageName) {
-//		Image src = null;
-//		File outFile = null;
-//		try {
-//			src = ImageIO.read(imageFile);
-//
-//			BufferedImage tag = new BufferedImage(width, height,
-//					BufferedImage.TYPE_INT_RGB);
-//			tag.getGraphics().drawImage(src, 0, 0, width, height, null); 
-//			outFile = new File(outImageName);
-//			FileOutputStream newimage = new FileOutputStream(outFile);
-//			JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(newimage);
-//			encoder.encode(tag); 
-//			newimage.close();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		return outFile;
-//	}
-//}
+
+import org.apache.log4j.Logger;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+public class ImageUtil {
+
+    public static final Logger log = Logger.getLogger(ImageUtil.class
+            .getName());
+
+
+    public static boolean createRoundedCornerImage(String imageFilePath, String outputFilePath) {
+
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File(imageFilePath));
+        } catch (IOException e) {
+            log.error("<createRoundedCornerImage> read input image but catch IOException="+e.toString(), e);
+            return false;
+        }
+
+        int cornerRadius = 20;  // default
+
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = output.createGraphics();
+
+        // This is what we want, but it only does hard-clipping, i.e. aliasing
+        // g2.setClip(new RoundRectangle2D ...)
+
+        // so instead fake soft-clipping by first drawing the desired clip shape
+        // in fully opaque white with antialiasing enabled...
+        g2.setComposite(AlphaComposite.Src);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        g2.fill(new RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
+
+        // ... then compositing the image on top,
+        // using the white shape from above as alpha source
+        g2.setComposite(AlphaComposite.SrcAtop);
+        g2.drawImage(image, 0, 0, null);
+
+        g2.dispose();
+
+        try {
+            ImageIO.write(output, "png", new File(outputFilePath));
+        } catch (IOException e) {
+            log.error("<createRoundedCornerImage> write image but catch IOException="+e.toString(), e);
+            return false;
+        }
+
+        return true;
+    }
+}
