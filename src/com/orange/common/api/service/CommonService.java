@@ -144,7 +144,7 @@ public abstract class CommonService {
 	// need to set responseData and resultCode and return them as JSON string
 	public abstract void handleData();
 	
-	protected abstract byte[] gePBDataByErrorCode(int errorCode);
+	protected abstract byte[] getPBDataByErrorCode(int errorCode);
 
 	public String getResponseString() {
 	    String retString = "";

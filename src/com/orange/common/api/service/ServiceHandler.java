@@ -317,7 +317,7 @@ public class ServiceHandler {
 		}
 		else{
 			if (responseFormat.equals(CommonParameter.PROTOCOL_BUFFER)){
-				byte[] data = serviceObject.gePBDataByErrorCode(errorCode);
+				byte[] data = serviceObject.getPBDataByErrorCode(errorCode);
 				if (data != null)
 					sendResponse(response, data, CommonParameter.APPLICATION_JSON, true);
 				else
