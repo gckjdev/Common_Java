@@ -862,4 +862,15 @@ public class MongoDBClient {
             return Collections.emptyList();
         }
     }
+
+    public boolean inc(String tableName, ObjectId key, String counterName, int inc) {
+        if (key == null || counterName == null){
+            return false;
+        }
+        BasicDBObject incValue = new BasicDBObject(counterName, inc);
+        BasicDBObject update = new BasicDBObject("$inc", incValue);
+        DBObject query = new BasicDBObject("_id", key);
+        updateOne(tableName, query, update);
+        return true;
+    }
 }
