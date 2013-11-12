@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.bson.types.ObjectId;
 import org.eclipse.jetty.util.log.Log;
 
 public class DateUtil {
@@ -179,4 +180,22 @@ public class DateUtil {
         Date date = new Date(currentTime - nDay * 24 * 3600 * 1000);
         return date;
     }
+
+    public static boolean idAfterDate(String objectIdString, String dateString) {
+
+        if (StringUtil.isEmpty(objectIdString) || !ObjectId.isValid(objectIdString)){
+            return true;
+        }
+
+        ObjectId objId = new ObjectId(objectIdString);
+        Date date = DateUtil.dateFromString(dateString);
+        if (objId.getTime() >= date.getTime()){
+            return true;
+        }
+        else{
+            return false;
+        }
+
+    }
+
 }

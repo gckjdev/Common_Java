@@ -1,15 +1,6 @@
 package com.orange.common.utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import org.apache.log4j.Logger;
 
@@ -105,5 +96,63 @@ public class FileUtils {
 	public static boolean isFileExists(String path) {
 		File file = new File(path);
 		return file.exists();
-	}	
+	}
+
+    public static boolean copyFile(String src, String des)
+    {
+        FileInputStream FIS = null;
+        FileOutputStream FOS = null;
+        try
+        {
+            FIS = new FileInputStream(src);
+            FOS = new FileOutputStream(des);
+            byte[] bt = new byte[1024];
+            int readNum = 0;
+            while ((readNum = FIS.read(bt)) != -1)
+            {
+                FOS.write(bt, 0, bt.length);
+            }
+            FIS.close();
+            FOS.close();
+            log.error("<copyFile> from "+src+" to "+des+" success");
+            return true;
+        }
+        catch (Exception e)
+        {
+            try
+            {
+                FIS.close();
+                FOS.close();
+            }
+            catch (IOException f)
+            {
+            }
+            log.error("<copyFile> from "+src+" to "+des+", catch exception="+e.toString(), e);
+            return false;
+        }
+        finally
+        {
+        }
+    }
+
+    public static String combine (String path1, String path2)
+    {
+        // TODO this can be resolved better by using commons-io  FilenameUtils.concat(path1, path2);
+        File file1 = new File(path1);
+        File file2 = new File(file1, path2);
+        return file2.getPath();
+    }
+
+    public static boolean copyFileToDir(String path, String exportDir) {
+
+        File srcFile = new File(path);
+        if (srcFile == null || !srcFile.exists() || srcFile.isDirectory()){
+            log.warn("<copyFileToDir> but srcFile "+path+" is null or not exists or is directory");
+            return false;
+        }
+
+        String destPath = combine(exportDir, srcFile.getName());
+        return copyFile(path, destPath);
+
+    }
 }
