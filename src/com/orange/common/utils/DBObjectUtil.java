@@ -26,6 +26,10 @@ public class DBObjectUtil {
             return ((Integer) obj).intValue();
         } else if (obj instanceof Double) {
             return ((Double) obj).intValue();
+        } else if (obj instanceof Long) {
+            long longValue = ((Long) obj).longValue();
+            System.out.println("long="+longValue+", int="+(int)longValue);
+            return (int)longValue;
         } else {
             return 0;
         }
@@ -42,6 +46,10 @@ public class DBObjectUtil {
 
         if (value instanceof Integer) {
             return ((Integer) value).doubleValue();
+        }
+
+        if (value instanceof Long) {
+            return ((Long) value).doubleValue();
         }
 
         return 0.0f;

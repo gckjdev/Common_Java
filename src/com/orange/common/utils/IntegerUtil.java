@@ -158,5 +158,10 @@ public class IntegerUtil {
 		int testNum = 1 << position;
 		return (num & testNum) == testNum;
 	}
-	 
+
+    public static long getUnsignedInt (int data){     //将int数据转换为0~4294967295 (0xFFFFFFFF即DWORD)。
+        return data & 0x0FFFFFFFFl;
+    }
+
+
 }
