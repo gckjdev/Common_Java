@@ -884,11 +884,14 @@ public class MongoDBClient {
 
     public boolean isListEmpty(String tableName, String keyObjectId, String field) {
         DBObject obj = findOneByObjectId(tableName, keyObjectId, new BasicDBObject(field, 1));
+        if (obj == null) {
+            return true;
+        }
         BasicDBList list  = (BasicDBList) obj.get(field);
         if (list != null && list instanceof BasicDBList){
-            return !list.isEmpty();
+            return list.isEmpty();
         }
-        return false;
+        return true;
     }
 
     public void pullValueFromSet(String tableName, String keyObjectId, String field, Object value) {
