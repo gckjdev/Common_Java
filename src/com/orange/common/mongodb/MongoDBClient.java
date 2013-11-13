@@ -873,4 +873,28 @@ public class MongoDBClient {
         updateOne(tableName, query, update);
         return true;
     }
+
+
+    public void addToSet(String tableName, String keyObjectId, String field, Object value) {
+        DBObject query = new BasicDBObject("_id", new ObjectId(keyObjectId));
+        BasicDBObject add = new BasicDBObject(field, value);
+        DBObject update = new BasicDBObject("$addToSet", add);
+        this.updateOne(tableName, query, update);
+    }
+
+    public boolean isListEmpty(String tableName, String keyObjectId, String field) {
+        DBObject obj = findOneByObjectId(tableName, keyObjectId, new BasicDBObject(field, 1));
+        BasicDBList list  = (BasicDBList) obj.get(field);
+        if (list != null && list instanceof BasicDBList){
+            return !list.isEmpty();
+        }
+        return false;
+    }
+
+    public void pullValueFromSet(String tableName, String keyObjectId, String field, Object value) {
+        DBObject query = new BasicDBObject("_id", new ObjectId(keyObjectId));
+        BasicDBObject pull = new BasicDBObject(field, value);
+        DBObject update = new BasicDBObject("$pull", pull);
+        updateOne(tableName, query, update);
+    }
 }
