@@ -28,7 +28,6 @@ public class DBObjectUtil {
             return ((Double) obj).intValue();
         } else if (obj instanceof Long) {
             long longValue = ((Long) obj).longValue();
-            System.out.println("long="+longValue+", int="+(int)longValue);
             return (int)longValue;
         } else {
             return 0;
