@@ -900,4 +900,24 @@ public class MongoDBClient {
         DBObject update = new BasicDBObject("$pull", pull);
         updateOne(tableName, query, update);
     }
+
+    public void updateOne(String tableName, String idValue, String editField, boolean boolValue) {
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new ObjectId(idValue));
+        BasicDBObject setting = new BasicDBObject();
+        setting.put(editField, boolValue);
+        BasicDBObject update = new BasicDBObject();
+        update.put("$set", setting);
+        updateOne(tableName, query, update);
+    }
+
+    public void updateOne(String tableName, String idValue, String editField, Object value) {
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new ObjectId(idValue));
+        BasicDBObject setting = new BasicDBObject();
+        setting.put(editField, value);
+        BasicDBObject update = new BasicDBObject();
+        update.put("$set", setting);
+        updateOne(tableName, query, update);
+    }
 }
