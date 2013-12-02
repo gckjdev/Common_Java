@@ -242,11 +242,15 @@ public abstract class CommonService {
 	}
 	
 	protected int getIntValueFromRequest(HttpServletRequest request, String key, int defaultValue) {
-        String value = request.getParameter(key);
-        if (value != null && value.length() != 0) {
-            return Integer.valueOf(value);
+        try{
+            String value = request.getParameter(key);
+            if (value != null && value.length() != 0) {
+                return Integer.valueOf(value);
+            }
+            return defaultValue;
+        }catch (Exception e){
+            return defaultValue;
         }
-        return defaultValue;
     }
 
     protected boolean getBoolValueFromRequest(HttpServletRequest request, String key, boolean defaultValue) {
