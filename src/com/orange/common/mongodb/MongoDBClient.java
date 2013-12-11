@@ -285,6 +285,16 @@ public class MongoDBClient {
         collection.update(query, update, false, false);
     }
 
+
+    public void updateOneById(String tableName, String id, DBObject update) {
+            updateOneById(tableName, new ObjectId(id), update);
+    }
+
+    public void updateOneById(String tableName, ObjectId id, DBObject update){
+        DBObject query = new BasicDBObject("_id", id);
+        updateOne(tableName, query, update);
+    }
+
     public void updateAll(String tableName, DBObject query, DBObject update) {
         DBCollection collection = db.getCollection(tableName);
         if (collection == null)
@@ -666,6 +676,18 @@ public class MongoDBClient {
         return collection.find(query, returnFields);
     }
 
+    public List<DBObject> getDBObjectList(DBCursor cursor){
+        if (cursor != null){
+            List<DBObject> list = new ArrayList<DBObject>();
+            while (cursor.hasNext()){
+                list.add(cursor.next());
+            }
+            cursor.close();
+            return list;
+        }
+        return Collections.emptyList();
+    }
+
     public DBCursor findByFieldsInValues(String tableName,
                                          Map<String, List<Object>> fieldValueMap, int offset, int limit) {
         DBCollection collection = db.getCollection(tableName);
@@ -795,6 +817,7 @@ public class MongoDBClient {
     public DBCursor findAll(String tableName, DBObject query,
                             DBObject returnFields) {
         DBCollection collection = db.getCollection(tableName);
+        if (returnFields == null){returnFields = new BasicDBObject();};
         if (collection == null)
             return null;
         log.info("<findAll> table=" + tableName + ",query=" + query + "fields=" + returnFields);
@@ -878,6 +901,10 @@ public class MongoDBClient {
 
     public void addToSet(String tableName, String keyObjectId, String field, Object value) {
         DBObject query = new BasicDBObject("_id", new ObjectId(keyObjectId));
+        addToSet(tableName, query, field, value);
+    }
+
+    public void addToSet(String tableName, DBObject query, String field, Object value) {
         BasicDBObject add = new BasicDBObject(field, value);
         DBObject update = new BasicDBObject("$addToSet", add);
         this.updateOne(tableName, query, update);
@@ -897,6 +924,10 @@ public class MongoDBClient {
 
     public void pullValueFromSet(String tableName, String keyObjectId, String field, Object value) {
         DBObject query = new BasicDBObject("_id", new ObjectId(keyObjectId));
+        pullValueFromSet(tableName, query, field, value);
+    }
+
+    public void pullValueFromSet(String tableName, DBObject query, String field, Object value) {
         BasicDBObject pull = new BasicDBObject(field, value);
         DBObject update = new BasicDBObject("$pull", pull);
         updateOne(tableName, query, update);
@@ -921,4 +952,14 @@ public class MongoDBClient {
         update.put("$set", setting);
         updateOne(tableName, query, update);
     }
+
+    public void addEachToSet(String tableName, DBObject query, String field, Collection<?> list) {
+
+        DBObject each = new BasicDBObject("$each", list);
+        DBObject set = new BasicDBObject(field, each);
+        DBObject update = new BasicDBObject("$addToSet", set);
+        updateOne(tableName, query, update);
+
+    }
+
 }
