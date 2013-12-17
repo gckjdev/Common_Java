@@ -469,9 +469,15 @@ public class UploadManager {
 	        while ((count = origin.read(data, 0, BUFFER)) != -1) {  
 	        	totalSize += count;
 	        	out.write(data, 0, count);  
-	        }  			
+	        }
 
-			log.info("<writeToFile> total " + totalSize + " bytes read, write to "+filePath+" success");
+            out.flush();
+            out.close();
+            out = null;
+
+//            long fileSize = FileUtils.fileSize(filePath);
+//			log.info("<writeToFile> total " + totalSize + " bytes read, write to "+filePath+" success, fileSize= "+fileSize);
+            log.info("<writeToFile> total " + totalSize + " bytes read, write to "+filePath+" success");
 			dataLen = totalSize;
 		} catch (Exception e) {
 			log.error("<writeToFile> error, catch exception:", e);

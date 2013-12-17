@@ -155,4 +155,9 @@ public class FileUtils {
         return copyFile(path, destPath);
 
     }
+
+    public static long fileSize(String filePath) {
+        File file = new File(filePath);
+        return file.length();
+    }
 }
