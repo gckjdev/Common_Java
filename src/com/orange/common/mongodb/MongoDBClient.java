@@ -734,6 +734,7 @@ public class MongoDBClient {
     }
 
     public void updateOrInsert(String tableName, DBObject query, DBObject update) {
+        log.info("<updateOrInsert> tableName = "+tableName + ", query  = "+ query+", update = "+update);
         DBCollection collection = db.getCollection(tableName);
         if (collection == null)
             return;
