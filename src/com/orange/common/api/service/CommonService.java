@@ -255,8 +255,8 @@ public abstract class CommonService {
 
     protected boolean getBoolValueFromRequest(HttpServletRequest request, String key, boolean defaultValue) {
         String value = request.getParameter(key);
-        if (value != null && value.length() != 0) {
-            return (Integer.valueOf(value) != 0);
+        if (value != null && value.length() > 0) {
+            return (Integer.parseInt(value) != 0);
         }
         return defaultValue;
     }
