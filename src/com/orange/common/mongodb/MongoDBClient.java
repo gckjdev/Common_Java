@@ -929,10 +929,19 @@ public class MongoDBClient {
     }
 
     public void pullValueFromSet(String tableName, DBObject query, String field, Object value) {
+        pullValueFromSet(tableName, query, field, value, false);
+    }
+
+    public void pullValueFromSet(String tableName, DBObject query, String field, Object value, boolean multi) {
         BasicDBObject pull = new BasicDBObject(field, value);
         DBObject update = new BasicDBObject("$pull", pull);
-        updateOne(tableName, query, update);
+        if (multi){
+            updateAll(tableName, query, update);
+        }else{
+            updateOne(tableName, query, update);
+        }
     }
+
 
     public void updateOne(String tableName, String idValue, String editField, boolean boolValue) {
         BasicDBObject query = new BasicDBObject();
