@@ -10,6 +10,7 @@ package com.orange.common.scheduler;
 import com.orange.common.utils.DateUtil;
 import org.apache.log4j.Logger;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,13 +24,9 @@ import java.util.concurrent.TimeUnit;
  * To change this template use File | Settings | File Templates.
  */
 public class ScheduleService {
-    private static ScheduleService ourInstance = new ScheduleService();
-
     static Logger log = Logger.getLogger(ScheduleService.class.getName());
-
-    public static ScheduleService getInstance() {
-        return ourInstance;
-    }
+    private static ScheduleService ourInstance = new ScheduleService();
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
     private ScheduleService() {
 
@@ -41,22 +38,39 @@ public class ScheduleService {
 
     }
 
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
+    public static ScheduleService getInstance() {
+        return ourInstance;
+    }
 
-    public void scheduleAtDate(Date date, Runnable runnable){
-        log.info("<scheduleAtDate> task scheduled at date "+date.toString());
+    public void scheduleAtDate(Date date, Runnable runnable) {
+        log.info("<scheduleAtDate> task scheduled at date " + date.toString());
         scheduler.schedule(runnable, date.getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
 
-    public void scheduleEveryday(int hour, int minute, int second, Runnable runnable){
+    public void scheduleEveryday(int hour, int minute, int second, Runnable runnable) {
         Date todayDate = DateUtil.getDateOfToday(hour, minute, second);
         log.info(String.format("<scheduleEveryday> task schedule at %02d:%02d:%02d, start from %s", hour, minute, second, todayDate.toString()));
-        scheduler.scheduleAtFixedRate(runnable, todayDate.getTime() - System.currentTimeMillis(), 24*3600*1000, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(runnable, todayDate.getTime() - System.currentTimeMillis(), 24 * 3600 * 1000, TimeUnit.MILLISECONDS);
     }
 
-    public void scheduleEverySecond(int second, Runnable runnable){
+    public void scheduleEverySecond(int second, Runnable runnable) {
         log.info(String.format("<scheduleEverySecond> task schedule every %d seconds", second));
         scheduler.scheduleAtFixedRate(runnable, 1, second, TimeUnit.SECONDS);
+    }
+
+    public void scheduleEveryMonth(final int dayInMonth, final Runnable runnable) {
+
+        scheduleEveryday(0, 0, 0, new Runnable() {
+            @Override
+            public void run() {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(new Date());
+                calendar.get(Calendar.DAY_OF_MONTH);
+                if (calendar.get(Calendar.DAY_OF_MONTH) == dayInMonth) {
+                    runnable.run();
+                }
+            }
+        });
     }
 
 
