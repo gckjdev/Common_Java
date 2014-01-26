@@ -8,6 +8,7 @@ package com.orange.common.scheduler;
 //import static org.quartz.SimpleScheduleBuilder.*;
 
 import com.orange.common.utils.DateUtil;
+import com.orange.common.utils.PropertyUtil;
 import org.apache.log4j.Logger;
 
 import java.util.Calendar;
@@ -43,22 +44,54 @@ public class ScheduleService {
     }
 
     public void scheduleAtDate(Date date, Runnable runnable) {
+
+        if (disableSchedule()){
+            return;
+        }
+
         log.info("<scheduleAtDate> task scheduled at date " + date.toString());
         scheduler.schedule(runnable, date.getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
 
+    private boolean disableSchedule() {
+
+        int disable = PropertyUtil.getIntProperty("schedule.disable", 1);
+        if (disable == 1){
+            log.warn("schedule service is disabled, add -Dschedule.disable=0 to enable it");
+            return true;
+        }
+        else{
+            return false;
+        }
+
+    }
+
     public void scheduleEveryday(int hour, int minute, int second, Runnable runnable) {
+
+        if (disableSchedule()){
+            return;
+        }
+
         Date todayDate = DateUtil.getDateOfToday(hour, minute, second);
         log.info(String.format("<scheduleEveryday> task schedule at %02d:%02d:%02d, start from %s", hour, minute, second, todayDate.toString()));
         scheduler.scheduleAtFixedRate(runnable, todayDate.getTime() - System.currentTimeMillis(), 24 * 3600 * 1000, TimeUnit.MILLISECONDS);
     }
 
     public void scheduleEverySecond(int second, Runnable runnable) {
+
+        if (disableSchedule()){
+            return;
+        }
+
         log.info(String.format("<scheduleEverySecond> task schedule every %d seconds", second));
         scheduler.scheduleAtFixedRate(runnable, 1, second, TimeUnit.SECONDS);
     }
 
     public void scheduleEveryMonth(final int dayInMonth, final Runnable runnable) {
+
+        if (disableSchedule()){
+            return;
+        }
 
         scheduleEveryday(0, 0, 0, new Runnable() {
             @Override
