@@ -181,6 +181,14 @@ public class DateUtil {
         return now.get(Calendar.MONTH);
     }
 
+    public  static int getWeekday(Date date){
+        TimeZone timeZone = TimeZone.getTimeZone("GMT+0800");
+        Calendar now = Calendar.getInstance(timeZone);
+        now.setTime(date);
+        return now.get(Calendar.DAY_OF_WEEK);
+    }
+
+
     public static Date getDateBeforeToday(int nDay){
 
         long currentTime = DateUtil.getCurrentTime();

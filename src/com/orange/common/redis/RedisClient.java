@@ -264,7 +264,7 @@ public class RedisClient {
                 }
 
                 String value = jedis.hget(key, field);
-                log.info("<RedisClient> HGET "+field+","+value+" HSET @"+key+", value="+value);
+                log.info("<RedisClient> HGET "+field+","+value+" HGET @"+key+", value="+value);
                 return value;
             }
         });
