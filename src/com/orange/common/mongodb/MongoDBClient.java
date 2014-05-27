@@ -334,8 +334,7 @@ public class MongoDBClient {
         if (collection == null)
             return;
 
-        log.info("<upsertAll> " + tableName + " query = " + query.toString() + ", update = "
-                + update.toString());
+        log.info("<upsertAll> " + tableName + " query = " + query.toString() + ", update = "+ update.toString());
         collection.update(query, update, true, true);
     }
 

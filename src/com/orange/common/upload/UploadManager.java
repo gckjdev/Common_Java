@@ -198,22 +198,25 @@ public class UploadManager {
 			String thumbImageName = timeFileString + "_m.jpg";
 			String localThumbPath = dir + "/" + thumbImageName;
 			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
+            ParseResult parseResult = new ParseResult();
+            ImageManager.ImageResult result = new ImageManager.ImageResult(0, "");
 			try {
 				// ImageManager.createThumbImage(localPath, localThumbPath, 256,
 				// 245);
-				String result = ImageManager.createThumbnail(localPath,
+				result = ImageManager.createThumbnail(localPath,
 						localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
 				log.info("<UploadManager> create thumb file result=" + result);
 			} catch (Exception e) {
 				remoteThumbPath = null;
 				log.error("<UploadManager>: fail to save thumb image", e);
 			}
-			ParseResult parseResult = new ParseResult();
 
 			parseResult.setLocalImageUrl(timeDir + "/" + largeImageName);
 			parseResult.setLocalThumbUrl(timeDir + "/" + thumbImageName);
 			parseResult.setThumbUrl(remoteThumbPath);
 			parseResult.setImageUrl(httpPath);
+            parseResult.setImageHeight(result.getImageHeight());
+            parseResult.setImageWidth(result.getImageWidth());
 
 			log.info("<debug> image parse result=" + parseResult.toString());
 			return parseResult;
@@ -432,6 +435,8 @@ public class UploadManager {
 							result.setThumbUrl(pr.getThumbUrl());
 							result.setLocalImageUrl(pr.getLocalImageUrl());
 							result.setLocalThumbUrl(pr.getLocalThumbUrl());
+                            result.setImageHeight(pr.getImageHeight());
+                            result.setImageWidth(pr.getImageWidth());
 						}
 					}
 				}
@@ -582,10 +587,29 @@ public class UploadManager {
 
 		private byte[] data;					// this field is used for old implementation
 		private int dataLen;
+
+        private int imageWidth;
+        private int imageHeight;
 		
-		private byte[] metaData;		
-		
-		public byte[] getMetaData() {
+		private byte[] metaData;
+
+        public int getImageWidth() {
+            return imageWidth;
+        }
+
+        public void setImageWidth(int imageWidth) {
+            this.imageWidth = imageWidth;
+        }
+
+        public int getImageHeight() {
+            return imageHeight;
+        }
+
+        public void setImageHeight(int imageHeight) {
+            this.imageHeight = imageHeight;
+        }
+
+        public byte[] getMetaData() {
 			return metaData;
 		}
 

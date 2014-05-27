@@ -74,7 +74,7 @@ public class ScheduleService {
 
         Date todayDate = DateUtil.getDateOfToday(hour, minute, second);
         log.info(String.format("<scheduleEveryday> task schedule at %02d:%02d:%02d, start from %s", hour, minute, second, todayDate.toString()));
-        scheduler.scheduleAtFixedRate(runnable, todayDate.getTime() - System.currentTimeMillis(), 24 * 3600 * 1000, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(runnable, (todayDate.getTime() - System.currentTimeMillis())/1000, 24 * 3600, TimeUnit.SECONDS);
     }
 
     public void scheduleEverySecond(int second, Runnable runnable) {

@@ -81,29 +81,40 @@ public class ImageManager {
 	    	output.close();
 	    }
 	}
-	
+
+
+
 	/**
 	* Reads an image in a file and creates a thumbnail in another file.
 	*/
-	public static String createThumbnail(String inFilename, String outFilename, int largestDimension)
+	public static ImageResult createThumbnail(String inFilename, String outFilename, int largestDimension)
 	{
+        ImageResult result = new ImageResult(0, "");
 		try
 		{
 			double scale;
 			int sizeDifference, originalImageLargestDim;
 			if(!inFilename.endsWith(".jpg") && !inFilename.endsWith(".jpeg") && !inFilename.endsWith(".gif") && !inFilename.endsWith(".png"))
 			{
-				return "Error: Unsupported image type, please only either JPG, GIF or PNG";
+                result.setFailure("Error: Unsupported image type, please only either JPG, GIF or PNG");
+				return result;
 			}
 			else
 			{
 				Image inImage = ImageIO.read(new java.io.File(inFilename));
 				if(inImage.getWidth(null) == -1 || inImage.getHeight(null) == -1)
 				{
-					return "Error loading file: \"" + inFilename + "\"";
+                    result.setFailure("Error loading file: \"" + inFilename + "\"");
+					return result;
 				}
 				else
 				{
+                    int imageWidth = inImage.getWidth(null);
+                    int imageHeight = inImage.getHeight(null);
+
+                    result.setImageHeight(imageHeight);
+                    result.setImageWidth(imageWidth);
+
 					//find biggest dimension	    
 					if(inImage.getWidth(null) > inImage.getHeight(null))
 					{
@@ -166,6 +177,10 @@ public class ImageManager {
 							scale = (double)intermediateSize/(double)previousIntermediateSize;
 							scaledW = (int)scaledW*scale;
 							scaledH = (int)scaledH*scale;
+
+                            result.setThumbImageHeight((int)scaledH);
+                            result.setThumbImageWidth((int)scaledW);
+
 							outImage = new BufferedImage((int)scaledW, (int)scaledH, BufferedImage.TYPE_INT_RGB);
 							g2d = outImage.createGraphics();
 							g2d.setBackground(Color.WHITE);
@@ -182,7 +197,10 @@ public class ImageManager {
 					}
 					else
 					{
-						//just copy the original
+                        result.setThumbImageHeight(imageHeight);
+                        result.setThumbImageWidth(imageWidth);
+
+                        //just copy the original
 						outImage = new BufferedImage(inImage.getWidth(null), inImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
 						g2d = outImage.createGraphics();
 						g2d.setBackground(Color.WHITE);
@@ -216,10 +234,86 @@ public class ImageManager {
 			{
 				errorMsg += "<br>" + stackTrace[traceLine];
 			}
-			return errorMsg;
+            result.setFailure(errorMsg);
+			return result;
 		}
-		return ""; //success
-	}	
+
+        result.setResultMessage("image["+result.getImageWidth()+"X"+result.getImageHeight()+"], "
+                +"thumb["+result.getThumbImageWidth()+"X"+result.getThumbImageHeight()+"]");
+		return result; //success
+	}
+
+    public static class ImageResult {
+
+        public final static int ERROR_IMAGE = 1;
+        public final static int ERROR_SUCCESS = 0;
+
+        int resultCode;
+        String resultMessage;
+        int imageWidth;
+        int imageHeight;
+        int thumbImageWidth;
+        int thumbImageHeight;
+
+        public String toString(){
+            return "[code:"+resultCode+",msg:"+resultMessage+"]";
+        }
+
+        public ImageResult(int resultCode, String resultMessage){
+            this.resultCode = resultCode;
+            this.resultMessage = resultMessage;
+        }
+
+        private int getResultCode() {
+            return resultCode;
+        }
+
+        private void setResultCode(int resultCode) {
+            this.resultCode = resultCode;
+        }
+
+        public int getImageWidth() {
+            return imageWidth;
+        }
+
+        private void setImageWidth(int imageWidth) {
+            this.imageWidth = imageWidth;
+        }
+
+        public int getImageHeight() {
+            return imageHeight;
+        }
+
+        private void setImageHeight(int imageHeight) {
+            this.imageHeight = imageHeight;
+        }
+
+        private int getThumbImageWidth() {
+            return thumbImageWidth;
+        }
+
+        private void setThumbImageWidth(int thumbImageWidth) {
+            this.thumbImageWidth = thumbImageWidth;
+        }
+
+        private int getThumbImageHeight() {
+            return thumbImageHeight;
+        }
+
+        private void setThumbImageHeight(int thumbImageHeight) {
+            this.thumbImageHeight = thumbImageHeight;
+        }
+
+        public void setFailure(String s) {
+            this.resultCode = ERROR_IMAGE;
+            this.resultMessage = s;
+        }
+
+        public void setResultMessage(String s) {
+            this.resultMessage = s;
+        }
+    }
+
 
     /*
 	public static boolean createThumbImage(String imagePath, String thumbPath,
