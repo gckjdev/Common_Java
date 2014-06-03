@@ -82,7 +82,26 @@ public class ImageManager {
 	    }
 	}
 
+    public static ImageResult getImageInfo(String imageFileName){
+        ImageResult result = new ImageResult(0, "");
+        Image inImage = null;
+        try {
+            inImage = ImageIO.read(new File(imageFileName));
+            if(inImage.getWidth(null) == -1 || inImage.getHeight(null) == -1)
+            {
+                result.setFailure("<getImageInfo> Error loading file: \"" + imageFileName + "\"");
+                return result;
+            }
+            else{
+                result.setImageHeight(inImage.getHeight(null));
+                result.setImageWidth(inImage.getWidth(null));
+            }
+        } catch (IOException e) {
+            result.setFailure("<getImageInfo> Catch exception: \"" + imageFileName + "\" = "+e.toString());
+        }
 
+        return result;
+    }
 
 	/**
 	* Reads an image in a file and creates a thumbnail in another file.
@@ -311,6 +330,14 @@ public class ImageManager {
 
         public void setResultMessage(String s) {
             this.resultMessage = s;
+        }
+
+        public int getResult() {
+            return resultCode;
+        }
+
+        public String getResultMessage(){
+            return resultMessage;
         }
     }
 
