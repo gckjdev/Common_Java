@@ -121,13 +121,18 @@ public class FileUtils {
         {
             try
             {
-                FIS.close();
-                FOS.close();
+                if (FIS != null){
+                    FIS.close();
+                }
+
+                if (FOS != null){
+                    FOS.close();
+                }
             }
             catch (IOException f)
             {
+                log.error("<copyFile> from "+src+" to "+des+", catch exception="+e.toString(), e);
             }
-            log.error("<copyFile> from "+src+" to "+des+", catch exception="+e.toString(), e);
             return false;
         }
         finally

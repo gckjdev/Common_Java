@@ -99,8 +99,14 @@ public class ScheduleService {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(new Date());
                 calendar.get(Calendar.DAY_OF_MONTH);
+
                 if (calendar.get(Calendar.DAY_OF_MONTH) == dayInMonth) {
-                    runnable.run();
+                    try{
+                        runnable.run();
+                    }
+                    catch(Exception e){
+                        log.error("<scheduleEveryMonth> catch exception="+e.toString(), e);
+                    }
                 }
             }
         });

@@ -44,9 +44,10 @@ public abstract class CommonService {
             if (result > 0) {
             	totalLen += result;
             	byte[] bytes = new byte[result];
-            	for (int i=0; i<result; i++){
-            		bytes[i] = buf[i];
-            	}
+                System.arraycopy(buf, 0, bytes, 0, result);
+//            	for (int i=0; i<result; i++){
+//            		bytes[i] = buf[i];
+//            	}
             	byteList.add(bytes);
             }  
         }  

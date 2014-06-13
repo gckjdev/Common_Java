@@ -65,6 +65,7 @@ public abstract class MongoDBExecutor {
                     log.info("mongo db executor terminated");
                 }
             } catch (InterruptedException e) {
+                log.error("mongo db executor catch exception="+e.toString(), e);
             }
         }
 

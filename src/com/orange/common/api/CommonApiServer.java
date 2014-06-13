@@ -47,9 +47,8 @@ public abstract class CommonApiServer extends AbstractHandler
 		   try {   
 			   p.load(inputStream);   
 		   } catch (IOException e1) {   
-			   log.info("read configuration file exception");
-			   e1.printStackTrace();   
-		   }   		   		   
+			   log.error("read configuration file exception, exception="+e1.toString(), e1);
+		   }
 	}
 		
 	public static void initSpringContext(String... context) {

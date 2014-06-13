@@ -112,8 +112,9 @@ public class StringUtil {
 			return null;
 		
 		List<String> stringList = new ArrayList<String>();
-		for (int i=0; i<list.length; i++)
-			stringList.add(list[i]);
+        Collections.addAll(stringList, list);
+//		for (int i=0; i<list.length; i++)
+//			stringList.add(list[i]);
 
 		return stringList;
 	}

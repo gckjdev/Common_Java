@@ -13,9 +13,10 @@ public class ListUtil {
 			return null;
 		
 		List<String> list = new ArrayList<String>();
-		for (int i=0; i<strings.length; i++){
-			list.add(strings[i]);
-		}
+        Collections.addAll(list, strings);
+//		for (int i=0; i<strings.length; i++){
+//			list.add(strings[i]);
+//		}
 		
 		return list;
 	}

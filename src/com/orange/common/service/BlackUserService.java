@@ -59,12 +59,11 @@ public class BlackUserService {
 					log.info("Add black device "+id);
 				}	
 			}
-			log.info("Loading black device, total "+blackDevices.size());			
+			log.info("Loading black device, total "+blackDevices.size());
 		}
 		catch(Exception e){
 			log.error("Loading black device but catch exception="+e.toString(), e);			
 		}
-		
 
 		cursor.close();
 	}
