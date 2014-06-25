@@ -26,6 +26,8 @@ public class CommonParameter {
 
 	public static final String JSON = "json";
 	public static final String PROTOCOL_BUFFER = "pb";
+    public static final String JSONP_CALLBACK = "jsonpcallback";
+    public static final String PARA_JSONP_CALLBACK = "jsonpcallback";
 	
 	public static final String TABLE_BLACK_DEVICE = "black_device";
 	public static final String TABLE_BLACK_USER = "black_user";

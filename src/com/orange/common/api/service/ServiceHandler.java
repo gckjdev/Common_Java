@@ -7,6 +7,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.orange.common.utils.StringUtil;
 import me.prettyprint.hector.api.exceptions.HectorException;
 import net.sf.json.JSONException;
 
@@ -69,13 +70,19 @@ public class ServiceHandler {
 			isSecureMethod = true;
 			method = request.getParameter(CommonParameter.METHOD_SECURE);
 		}
-		
+
+        boolean isJsonCallback = false;
+        String jsonCallbackString = null;
 		String format = request.getParameter(CommonParameter.FORMAT);
 		if (format == null){
 			format = CommonParameter.JSON;
 		}
+        if (format.equalsIgnoreCase(CommonParameter.JSONP_CALLBACK)){
+            isJsonCallback = true;
+            jsonCallbackString = request.getParameter(CommonParameter.PARA_JSONP_CALLBACK);
+        }
 		
-		CommonService obj = null;		
+		CommonService obj = null;
 		obj = serviceFactory.createServiceObjectByMethod(method);
 
 		try {
@@ -92,7 +99,8 @@ public class ServiceHandler {
 			obj.setRequest(request);
 			obj.setResponse(response);
 			obj.setDataFormat(format);
-			
+            obj.setJsonpCallback(jsonCallbackString);
+
 			if (!obj.validateSecurity(request)) {
 				sendResponseByErrorCode(obj, response,
 						CommonErrorCode.ERROR_INVALID_SECURITY, gzip, format);
@@ -161,7 +169,7 @@ public class ServiceHandler {
 			String responseType = obj.resultType;
 
 			// send back response
-			sendResponse(response, responseData, responseType, gzip);			
+			sendResponse(response, responseData, responseType, gzip, jsonCallbackString);
 		}
 
 	}
@@ -258,7 +266,14 @@ public class ServiceHandler {
 		}
 	}
     
-	void sendResponse(HttpServletResponse response, String responseData, String responseType, boolean gzip) {
+	void sendResponse(HttpServletResponse response, String responseData, String responseType, boolean gzip, String jsonCallbackString) {
+        log.info("jsonCallbackString=="+jsonCallbackString);
+        if (!StringUtil.isEmpty(jsonCallbackString)){
+//            log.info("json callback string added start");
+            responseData = jsonCallbackString + "(" + responseData + ")";
+//            log.info("json callback string added end");
+        }
+
 		printResponse(response, responseData);
 		response.setContentType(responseType);
 		try {
@@ -310,9 +325,10 @@ public class ServiceHandler {
 			if (responseFormat.equals(CommonParameter.PROTOCOL_BUFFER)){
 				sendResponse(response, errorCode);
 			}
-			else{
+			else
+            {
 				String resultString = CommonErrorCode.getJSONByErrorCode(errorCode);
-				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip);
+				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip, serviceObject.getJsonpCallback());
 			}
 		}
 		else{
@@ -325,14 +341,25 @@ public class ServiceHandler {
 			}
 			else{
 				String resultString = CommonErrorCode.getJSONByErrorCode(errorCode);
-				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip);
+				sendResponse(response, resultString,CommonParameter.APPLICATION_JSON, gzip, serviceObject.getJsonpCallback());
 			}			
 		}
 	}
-	
-	
 
-	private void sendResponse(HttpServletResponse response, int errorCode) {
+    private boolean isJsonCallback(String format) {
+        if (format == null){
+            return false;
+        }
+        else if (format.equalsIgnoreCase(CommonParameter.JSONP_CALLBACK)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+
+    private void sendResponse(HttpServletResponse response, int errorCode) {
         try {
             response.setStatus(404);
 			response.getWriter().flush();
