@@ -21,8 +21,8 @@ import com.orange.common.service.BlackUserService;
 import com.orange.common.utils.StringUtil;
 
 public abstract class CommonService {
-		
-	/** 
+
+    /**
      * Read the next line of input. 
      * 
      * @return a byte array containing all post data 
@@ -76,6 +76,7 @@ public abstract class CommonService {
 	protected String resultType = CommonParameter.APPLICATION_JSON;
 	protected String format = CommonParameter.JSON;
 	protected boolean isSecureMethod = false;
+    protected String jsonpCallback = null;
 	
 	protected CassandraClient cassandraClient = null;
 	protected MongoDBClient mongoClient = null;
@@ -334,6 +335,12 @@ public abstract class CommonService {
 		this.response = response;
 	}
 
-	
-	
+
+    public void setJsonpCallback(String jsonpCallback) {
+        this.jsonpCallback = jsonpCallback;
+    }
+
+    public String getJsonpCallback() {
+        return jsonpCallback;
+    }
 }
