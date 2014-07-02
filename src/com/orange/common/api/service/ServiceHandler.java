@@ -163,7 +163,6 @@ public class ServiceHandler {
 			// send back response
 			sendResponse(response, responseData, responseType, gzip);			
 		}
-
 	}
 
 	void printRequest(HttpServletRequest request) {
