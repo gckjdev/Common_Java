@@ -138,7 +138,7 @@ public class UploadManager {
 	}
 	
 	private static ParseResult saveImage(FileItemStream item, String localDir,
-			String remoteDir) {
+			String remoteDir, String idFileName) {
 		String localPath = "";
 		String httpPath = "";
 		String filename = "";
@@ -177,7 +177,7 @@ public class UploadManager {
 			FileUtils.createDir(dir);
 			
 			// generate file name
-			String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+			String timeFileString = (idFileName != null) ? idFileName : TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
 			String largeImageName = timeFileString + ".jpg";
 
 			// construction path and write file
@@ -327,7 +327,7 @@ public class UploadManager {
 						
 					} else if (imageFieldName != null && name.equalsIgnoreCase(imageFieldName)) {
 						log.info("<readFormData> image data file detected for "+imageFieldName);
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, null);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -359,7 +359,8 @@ public class UploadManager {
 			boolean isDataZip,
 			boolean isDataCompressed, 
 			String localDataDir,
-			String remoteDataDir) {
+			String remoteDataDir,
+            String idFileName) {
 		try {
 			ParseResult result = new ParseResult();
 			request.setCharacterEncoding(ENCODING_UTF8);
@@ -395,7 +396,8 @@ public class UploadManager {
 							String dir = localDataDir + timeDir;
 							FileUtils.createDir(dir);
 							
-							String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+//							String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+                            String timeFileString = (idFileName != null) ? idFileName : TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
 							String zipFilePath = null;
 							if (isDataCompressed){
 								zipFilePath = dir+"/"+timeFileString+"_c.zip";
@@ -428,7 +430,7 @@ public class UploadManager {
 							&& name.equalsIgnoreCase(imageFieldName)) {
 						log
 								.info("<getFormDataAndSaveImage> image data file detected.");
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());

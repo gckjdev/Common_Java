@@ -199,7 +199,21 @@ public class RedisClient {
 		return ((Long)result).intValue();
 	}
 
+    public int zcountbelow(final String key, final double score) {
+        Object result = (Object)execute(new RedisCallable<Long>() {
+            @Override
+            public Long call(Jedis jedis) {
+                Long count = jedis.zcount(key, Double.MIN_VALUE, score);
+                log.info("<RedisClient> "+count+" COUNT @"+key);
+                return count;
+            }
+        });
 
+        if (result == null)
+            return 0;
+
+        return ((Long)result).intValue();
+    }
 
     public int zrevrank(final String key, final String member) {
         Object result = (Object)execute(new RedisCallable<Long>() {
@@ -314,6 +328,11 @@ public class RedisClient {
                 return jedis.zscore(key, member);
             }
         });
+
+        if (result == null){
+            return 0;
+        }
+
         return result;
     }
 
