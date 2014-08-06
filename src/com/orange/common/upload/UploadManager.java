@@ -138,7 +138,7 @@ public class UploadManager {
 	}
 	
 	private static ParseResult saveImage(FileItemStream item, String localDir,
-			String remoteDir, String idFileName) {
+			String remoteDir, String idFileName, String suffix, boolean createThumb) {
 		String localPath = "";
 		String httpPath = "";
 		String filename = "";
@@ -178,6 +178,11 @@ public class UploadManager {
 			
 			// generate file name
 			String timeFileString = (idFileName != null) ? idFileName : TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+
+            if (suffix != null){
+                timeFileString = timeFileString + suffix;
+            }
+
 			String largeImageName = timeFileString + ".jpg";
 
 			// construction path and write file
@@ -187,8 +192,7 @@ public class UploadManager {
 			httpPath = remoteDir + timeDir + "/" + largeImageName;
 
 			// write to file
-			log.info("<uploadFile> write to file=" + localPath
-					+ ", http path = " + httpPath);
+			log.info("<uploadFile> write to file=" + localPath+ ", http path = " + httpPath);
 			fw = new FileOutputStream(localPath);
 			fw.write(bytes);
 			fw.close();
@@ -200,16 +204,18 @@ public class UploadManager {
 			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
             ParseResult parseResult = new ParseResult();
             ImageManager.ImageResult result = new ImageManager.ImageResult(0, "");
-			try {
-				// ImageManager.createThumbImage(localPath, localThumbPath, 256,
-				// 245);
-				result = ImageManager.createThumbnail(localPath,
-						localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
-				log.info("<UploadManager> create thumb file result=" + result);
-			} catch (Exception e) {
-				remoteThumbPath = null;
-				log.error("<UploadManager>: fail to save thumb image", e);
-			}
+
+            if (createThumb){
+                try {
+                    // ImageManager.createThumbImage(localPath, localThumbPath, 256,
+                    // 245);
+                    result = ImageManager.createThumbnail(localPath, localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
+                    log.info("<UploadManager> create thumb file result=" + result);
+                } catch (Exception e) {
+                    remoteThumbPath = null;
+                    log.error("<UploadManager>: fail to save thumb image", e);
+                }
+            }
 
 			parseResult.setLocalImageUrl(timeDir + "/" + largeImageName);
 			parseResult.setLocalThumbUrl(timeDir + "/" + thumbImageName);
@@ -327,7 +333,7 @@ public class UploadManager {
 						
 					} else if (imageFieldName != null && name.equalsIgnoreCase(imageFieldName)) {
 						log.info("<readFormData> image data file detected for "+imageFieldName);
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, null);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, null, null, true);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -352,7 +358,8 @@ public class UploadManager {
 	public static ParseResult getFormDataAndSaveImage(
 			HttpServletRequest request, 
 			String dataFieldName,
-			String imageFieldName, 
+			String imageFieldName,
+            String bgImageFieldName,
 			String localImageDir, 
 			String remoteImageDir,
 			boolean isReturnByteData,
@@ -426,11 +433,10 @@ public class UploadManager {
 							result.setRemoteZipFileUrl(remoteZipFileUrl);
 						}
 						
-					} else if (name != null
-							&& name.equalsIgnoreCase(imageFieldName)) {
-						log
-								.info("<getFormDataAndSaveImage> image data file detected.");
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName);
+					}
+                    else if (name != null && name.equalsIgnoreCase(imageFieldName)) {
+						log.info("<getFormDataAndSaveImage> image data file detected.");
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, null, true);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -441,6 +447,19 @@ public class UploadManager {
                             result.setImageWidth(pr.getImageWidth());
 						}
 					}
+                    else if (name != null && name.equalsIgnoreCase(bgImageFieldName)) {
+                        log.info("<getFormDataAndSaveImage> bg image file detected.");
+                        String bgSuffix = "_bg";
+                        ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, bgSuffix, false);
+                        if (pr != null) {
+                            result.setBgImageUrl(pr.getImageUrl());
+//                            result.setBgThumbUrl(pr.getThumbUrl());
+                            result.setLocalBgImageUrl(pr.getLocalImageUrl());
+//                            result.setBgLocalThumbUrl(pr.getLocalThumbUrl());
+                            result.setBgImageHeight(pr.getImageHeight());
+                            result.setBgImageWidth(pr.getImageWidth());
+                        }
+                    }
 				}
 			}
 			return result;
@@ -580,8 +599,10 @@ public class UploadManager {
 
 	public static class ParseResult {
 		private String imageUrl;
+        private String bgImageUrl;
 		private String thumbUrl;
 		private String localImageUrl;		// relative URL without full path
+        private String localBgImageUrl;		// relative URL without full path
 		private String localThumbUrl;		// relative URL without full path
 		
 		private String localZipFileUrl;		// both zip file and non-zip file will use this field
@@ -592,7 +613,9 @@ public class UploadManager {
 
         private int imageWidth;
         private int imageHeight;
-		
+        private int bgImageWidth;
+        private int bgImageHeight;
+
 		private byte[] metaData;
 
         public int getImageWidth() {
@@ -721,5 +744,37 @@ public class UploadManager {
 					+ remoteZipFileUrl + ", dataLen=" + dataLen + "]";
 		}
 
-	}
+
+        public String getBgImageUrl() {
+            return bgImageUrl;
+        }
+
+        public void setBgImageUrl(String bgImageUrl) {
+            this.bgImageUrl = bgImageUrl;
+        }
+
+        public String getLocalBgImageUrl() {
+            return localBgImageUrl;
+        }
+
+        public void setLocalBgImageUrl(String localBgImageUrl) {
+            this.localBgImageUrl = localBgImageUrl;
+        }
+
+        public int getBgImageWidth() {
+            return bgImageWidth;
+        }
+
+        public void setBgImageWidth(int bgImageWidth) {
+            this.bgImageWidth = bgImageWidth;
+        }
+
+        public int getBgImageHeight() {
+            return bgImageHeight;
+        }
+
+        public void setBgImageHeight(int bgImageHeight) {
+            this.bgImageHeight = bgImageHeight;
+        }
+    }
 }
