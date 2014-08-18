@@ -11,6 +11,7 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 
 import com.orange.common.utils.StringUtil;
+import org.imgscalr.Scalr;
 //import com.sun.image.codec.jpeg.*;
 
 import javax.imageio.IIOImage;
@@ -19,6 +20,8 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.swing.ImageIcon;
+
+import static org.imgscalr.Scalr.*;
 
 public class ImageManager {
 
@@ -103,10 +106,47 @@ public class ImageManager {
         return result;
     }
 
-	/**
+    public static ImageResult createThumbnail(String inFilename, String outFilename, int largestDimension)
+    {
+        ImageResult result = new ImageResult(0, "");
+
+        long start = System.currentTimeMillis();
+        long resizeTime = 0;
+
+        BufferedImage in = null;
+        BufferedImage out = null;
+        try {
+
+            in = ImageIO.read(new File(inFilename));
+
+            int imageWidth = in.getWidth(null);
+            int imageHeight = in.getHeight(null);
+            result.setImageHeight(imageHeight);
+            result.setImageWidth(imageWidth);
+
+            out = Scalr.resize(in, Method.ULTRA_QUALITY, Mode.AUTOMATIC, largestDimension);
+//            out = Scalr.resize(in, Method.QUALITY, Mode.AUTOMATIC, largestDimension);
+
+            result.setThumbImageHeight(out.getWidth(null));
+            result.setThumbImageWidth(out.getHeight(null));
+
+//            writeJpeg(out, outFilename, 1.0f);
+            ImageIO.write(out, "JPG", new FileOutputStream(outFilename));
+        } catch (IOException e) {
+            result.setFailure("Error: createThumbnail but catch exception =" + e.toString());
+            return result;
+        }
+
+        result.setResultMessage("image["+result.getImageWidth()+"X"+result.getImageHeight()+"], "
+                +"thumb["+result.getThumbImageWidth()+"X"+result.getThumbImageHeight()+"]");
+
+        return result; //success
+    }
+
+    /**
 	* Reads an image in a file and creates a thumbnail in another file.
 	*/
-	public static ImageResult createThumbnail(String inFilename, String outFilename, int largestDimension)
+	private static ImageResult createThumbnail1(String inFilename, String outFilename, int largestDimension)
 	{
         ImageResult result = new ImageResult(0, "");
 		try

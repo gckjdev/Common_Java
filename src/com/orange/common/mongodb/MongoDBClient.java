@@ -1,6 +1,7 @@
 package com.orange.common.mongodb;
 
 import com.mongodb.*;
+import com.orange.common.utils.PropertyUtil;
 import com.orange.common.utils.StringUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
@@ -825,6 +826,13 @@ public class MongoDBClient {
     }
 
     public void createIndexIfNotExist(String tableName, String indexField, boolean unqiue) {
+
+        int autoIndex = PropertyUtil.getIntProperty("auto_index", 0);
+        if (autoIndex == 0){
+            log.info("<createIndex> " + tableName + ", but auto_index = 0");
+            return;
+        }
+
         DBCollection collection = db.getCollection(tableName);
         if (collection == null || indexField == null || indexField.length() == 0)
             return;

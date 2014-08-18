@@ -197,6 +197,7 @@ public class UploadManager {
 			fw.write(bytes);
 			fw.close();
 			fw = null;
+            log.info("<uploadFile> write to file " + localPath+ " done");
 
 			// create thumb image
 			String thumbImageName = timeFileString + "_m.jpg";

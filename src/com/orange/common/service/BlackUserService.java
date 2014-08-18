@@ -41,11 +41,11 @@ public class BlackUserService {
 			return;
 		}
 		
-		log.info("Loading black device");
+//		log.info("Loading black device");
 		hasLoadDevices = true;
 		DBCursor cursor =  mongoClient.findAll(CommonParameter.TABLE_BLACK_DEVICE);
 		if (cursor == null){
-			log.info("Loading black device, no black device");			
+//			log.info("Loading black device, no black device");
 			return;
 		}
 		
@@ -56,10 +56,10 @@ public class BlackUserService {
 				if (obj != null){
 					String id = (String)obj.get("_id");
 					blackDevices.add(id);
-					log.info("Add black device "+id);
+//					log.info("Add black device "+id);
 				}	
 			}
-			log.info("Loading black device, total "+blackDevices.size());
+//			log.info("Loading black device, total "+blackDevices.size());
 		}
 		catch(Exception e){
 			log.error("Loading black device but catch exception="+e.toString(), e);			
@@ -74,11 +74,11 @@ public class BlackUserService {
 			return;
 		}
 		
-		log.info("Loading black user");
+//		log.info("Loading black user");
 		hasLoadUsers = true;
 		DBCursor cursor =  mongoClient.findAll(CommonParameter.TABLE_BLACK_USER);
 		if (cursor == null){
-			log.info("Loading black user, no black user");			
+//			log.info("Loading black user, no black user");
 			return;
 		}
 		
@@ -90,10 +90,10 @@ public class BlackUserService {
 					ObjectId id = (ObjectId)obj.get("_id");
 					String black = id.toStringMongod();
 					blackUsers.add(id.toStringMongod());
-					log.info("Add black user "+black);
+//					log.info("Add black user "+black);
 				}	
 			}
-			log.info("Loading black user, total "+blackUsers.size());
+//			log.info("Loading black user, total "+blackUsers.size());
 		}
 		catch(Exception e){
 			log.error("Loading black user but catch exception="+e.toString(), e);			
@@ -103,7 +103,7 @@ public class BlackUserService {
 	}
 	
 	private void executeLoad(final MongoDBClient mongoClient){
-		log.info("Schedule Load Black User & Device");
+//		log.info("Schedule Load Black User & Device");
 		hasLoadDevices = false;
 		hasLoadUsers = false;
 		loadBlackDevice(mongoClient);
