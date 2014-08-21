@@ -781,6 +781,23 @@ public class MongoDBClient {
         return findAll(tableName, null);
     }
 
+    public boolean dropTable(String tableName) {
+
+        log.info("<dropTable> "+tableName);
+        if (StringUtil.isEmpty(tableName)){
+            return false;
+        }
+
+        DBCollection collection = db.getCollection(tableName);
+        if (collection == null){
+            log.error("<dropTable> "+tableName+" collection null");
+            return false;
+        }
+
+        collection.drop();
+        return true;
+    }
+
     public DBCursor findAll(String tableName, DBObject order) {
         DBCollection collection = db.getCollection(tableName);
         if (collection == null)
