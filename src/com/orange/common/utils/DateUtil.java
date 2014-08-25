@@ -181,6 +181,13 @@ public class DateUtil {
         return now.get(Calendar.MONTH);
     }
 
+    public  static int getHour(Date date){
+        TimeZone timeZone = TimeZone.getTimeZone("GMT+0800");
+        Calendar now = Calendar.getInstance(timeZone);
+        now.setTime(date);
+        return now.get(Calendar.HOUR_OF_DAY);
+    }
+
     public  static int getWeekday(Date date){
         TimeZone timeZone = TimeZone.getTimeZone("GMT+0800");
         Calendar now = Calendar.getInstance(timeZone);
