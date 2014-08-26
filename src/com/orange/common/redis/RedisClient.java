@@ -1,6 +1,7 @@
 package com.orange.common.redis;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,6 +46,8 @@ public class RedisClient {
 		}
 		catch(Exception e){
 			log.error("<execute redis> but catch exception="+e.toString(), e);
+            pool.returnBrokenResource(jedis);
+            jedis = null;
 			result = null;
 		}
 		finally{
@@ -518,8 +521,14 @@ public class RedisClient {
                         for (int i=0; i<popCount; i++){
                             transaction.rpop(key);
                         }
-                        transaction.exec();
+                        List result = transaction.exec();
+                        jedis.sync();
                         log.info("<RedisClient> "+popCount+" CLEANED @"+key);
+
+                        if (result != null){
+                            return Boolean.FALSE;
+                        }
+
                         return Boolean.TRUE;
                     }
 
