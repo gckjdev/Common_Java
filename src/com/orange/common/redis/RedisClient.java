@@ -10,10 +10,7 @@ import java.util.concurrent.TimeUnit;
 import com.orange.common.scheduler.ScheduleService;
 import org.apache.log4j.Logger;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 
 public class RedisClient {
 
@@ -517,15 +514,17 @@ public class RedisClient {
 
                         int popCount = count.intValue() - maxCount;
 
-                        Transaction transaction = jedis.multi();
+                        Pipeline p = jedis.pipelined();
+                        p.multi();
                         for (int i=0; i<popCount; i++){
-                            transaction.rpop(key);
+                            p.rpop(key);
                         }
-                        List result = transaction.exec();
+                        Response<List<Object>> result = p.exec();
                         jedis.sync();
                         log.info("<RedisClient> "+popCount+" CLEANED @"+key);
 
-                        if (result != null){
+                        if (result == null || result.get() == null){
+                            log.warn("<RedisClient> pipeline exec result null @"+key);
                             return Boolean.FALSE;
                         }
 
