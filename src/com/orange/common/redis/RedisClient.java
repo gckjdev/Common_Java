@@ -1,5 +1,6 @@
 package com.orange.common.redis;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -8,9 +9,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.orange.common.scheduler.ScheduleService;
+import com.orange.common.utils.PropertyUtil;
 import org.apache.log4j.Logger;
 
 import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RedisClient {
 
@@ -27,8 +30,23 @@ public class RedisClient {
 		if (address == null) {
 			address = "127.0.0.1";
 		}
+
+        int port = PropertyUtil.getIntProperty("redis.port", 6379);
+
 		log.info("Create redis client pool on address "+address);
-		pool = new JedisPool(new JedisPoolConfig(), address);
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxActive(128);
+        poolConfig.setMaxIdle(64);
+        poolConfig.setMinIdle(5);
+        poolConfig.setMaxWait(1000);
+        poolConfig.setTestOnBorrow(false);
+        poolConfig.setTestOnReturn(false);
+        poolConfig.setTestWhileIdle(true);
+        poolConfig.setTimeBetweenEvictionRunsMillis(60*1000);
+
+        int timeout = 30*1000;
+		pool = new JedisPool(poolConfig, address, port, timeout);
 	}
 
 	public static RedisClient getInstance(){
@@ -36,20 +54,37 @@ public class RedisClient {
 	}
 	
 	public Object execute(RedisCallable callable){
+        if (callable == null){
+            log.warn("<execute redis> warning!!! callabel is null");
+            return null;
+        }
+
 		Jedis jedis = pool.getResource();
+        if (jedis == null){
+            log.error("<execute redis> exception!!! no jedis in resource pool!");
+            return null;
+        }
+
 		Object result = null;
 		try{
 			result = callable.call(jedis);			
 		}
-		catch(Exception e){
-			log.error("<execute redis> but catch exception="+e.toString(), e);
+		catch (JedisConnectionException e){
+			log.error("<execute redis> but catch JedisConnectionException="+e.toString(), e);
             pool.returnBrokenResource(jedis);
+            log.info("<execute redis> return broken jedis resource");
             jedis = null;
 			result = null;
 		}
+        catch (Exception e1){
+            log.error("<execute redis> but catch exception="+e1.toString(), e1);
+            result = null;
+        }
 		finally{
-			pool.returnResource(jedis);
-			jedis = null;
+            if (jedis != null){
+                pool.returnResource(jedis);
+			    jedis = null;
+            }
 		}
 		
 		return result;
@@ -515,15 +550,15 @@ public class RedisClient {
                         int popCount = count.intValue() - maxCount;
 
                         Pipeline p = jedis.pipelined();
-                        p.multi();
+//                        p.multi();
                         for (int i=0; i<popCount; i++){
                             p.rpop(key);
                         }
-                        Response<List<Object>> result = p.exec();
-                        jedis.sync();
+//                        Response<List<Object>> result = p.exec();
+                        List result = p.syncAndReturnAll();
                         log.info("<RedisClient> "+popCount+" CLEANED @"+key);
 
-                        if (result == null || result.get() == null){
+                        if (result == null){
                             log.warn("<RedisClient> pipeline exec result null @"+key);
                             return Boolean.FALSE;
                         }
