@@ -37,7 +37,7 @@ public class RedisClient {
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         poolConfig.setMaxActive(128);
-        poolConfig.setMaxIdle(64);
+        poolConfig.setMaxIdle(10);
         poolConfig.setMinIdle(5);
         poolConfig.setMaxWait(1000);
         poolConfig.setTestOnBorrow(false);
