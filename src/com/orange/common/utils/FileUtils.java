@@ -16,8 +16,9 @@ public class FileUtils {
 			return null;
 		}
 
+        BufferedReader in = null;
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(file));
+            in = new BufferedReader(new FileReader(file));
 			StringBuilder builder = new StringBuilder();
 			String str = null;
 			while ((str = in.readLine()) != null) {
@@ -25,9 +26,16 @@ public class FileUtils {
                 builder.append("\n");
 			}
 			in.close();
+            in = null;
 			return builder.toString();
 		} catch (Exception e) {
             log.error("<stringFromFile> catch exception="+e.toString(), e);
+            if (in != null){
+                try {
+                    in.close();
+                } catch (IOException e1) {
+                }
+            }
 			return null;
 		}
 	}
