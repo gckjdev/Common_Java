@@ -3,6 +3,7 @@ package com.orange.common.redis;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -314,6 +315,24 @@ public class RedisClient {
 
                 String value = jedis.hget(key, field);
                 log.info("<RedisClient> HGET "+field+","+value+" HGET @"+key+", value="+value);
+                return value;
+            }
+        });
+
+        return result;
+    }
+
+    public Map<String, String> hgetall(final String key) {
+        Map<String, String> result = (Map<String, String>)execute(new RedisCallable<Map<String, String>>() {
+            @Override
+            public Map<String, String> call(Jedis jedis) {
+                if (key == null){
+                    log.error("<RedisClient> HGETALL but key is null");
+                    return null;
+                }
+
+                Map<String, String> value = jedis.hgetAll(key);
+                log.info("<RedisClient> HGETALL @"+key+", value="+value);
                 return value;
             }
         });

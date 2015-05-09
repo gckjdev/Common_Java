@@ -1,6 +1,8 @@
 package com.orange.common.utils;
 
 import java.io.*;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 
 import org.apache.log4j.Logger;
 
@@ -172,5 +174,24 @@ public class FileUtils {
     public static long fileSize(String filePath) {
         File file = new File(filePath);
         return file.length();
+    }
+
+    public static String getFileMD5String(File file) {
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            ByteArrayOutputStream out = new ByteArrayOutputStream((int)file.length());
+            byte[] cache = new byte[1048576];
+            for(int i = in.read(cache);i != -1;i = in.read(cache)){
+                out.write(cache, 0, i);
+            }
+            in.close();
+            String ret = StringUtil.md5base64encode(out.toByteArray());
+            out.close();
+            return ret;
+        } catch (Exception e) {
+            log.error("<getFileMD5String> but catch exception = "+e.toString(), e);
+            return null;
+        }
     }
 }

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.orange.common.utils.ShareFileService;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 
 import org.apache.commons.fileupload.FileItemIterator;
@@ -138,7 +139,11 @@ public class UploadManager {
 	}
 	
 	private static ParseResult saveImage(FileItemStream item, String localDir,
-			String remoteDir, String idFileName, String suffix, boolean createThumb) {
+			String remoteDir,
+            String idFileName,
+            String suffix,
+            boolean createThumb,
+            boolean useShareDir) {
 		String localPath = "";
 		String httpPath = "";
 		String filename = "";
@@ -170,63 +175,84 @@ public class UploadManager {
 			for (Integer tByte : byteArray) {
 				bytes[i++] = tByte.byteValue();
 			}
-			
-			// generate direcotry
-			String timeDir = getTimeFilePath();
-			String dir = localDir + timeDir;
-			FileUtils.createDir(dir);
-			
-			// generate file name
-			String timeFileString = (idFileName != null) ? idFileName : TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
 
-            if (suffix != null){
-                timeFileString = timeFileString + suffix;
+            // check need to use share image for bg image
+            if (useShareDir){
+                String shareFileName = ShareFileService.getInstance().getAndUpdateShareMap(bytes);
+                String shareDir = ShareFileService.getInstance().getShareDir();
+
+                ParseResult parseResult = new ParseResult();
+                ImageManager.ImageResult result = new ImageManager.ImageResult(0, "");
+
+                parseResult.setLocalImageUrl(shareDir + "/" + shareFileName);
+                parseResult.setImageUrl(remoteDir + shareDir + "/" + shareFileName);
+                parseResult.setImageHeight(result.getImageHeight());
+                parseResult.setImageWidth(result.getImageWidth());
+
+                log.info("<debug> image result=" + parseResult.toString());
+                return parseResult;
+
+
             }
+            else{
+                // generate direcotry
+                String timeDir = getTimeFilePath();
+                String dir = localDir + timeDir;
+                FileUtils.createDir(dir);
 
-			String largeImageName = timeFileString + ".jpg";
+                // generate file name
+                String timeFileString = (idFileName != null) ? idFileName : TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
 
-			// construction path and write file
-			localPath = dir + "/" + largeImageName;
-
-			// construct return http path
-			httpPath = remoteDir + timeDir + "/" + largeImageName;
-
-			// write to file
-			log.info("<uploadFile> write to file=" + localPath+ ", http path = " + httpPath);
-			fw = new FileOutputStream(localPath);
-			fw.write(bytes);
-			fw.close();
-			fw = null;
-            log.info("<uploadFile> write to file " + localPath+ " done");
-
-			// create thumb image
-			String thumbImageName = timeFileString + "_m.jpg";
-			String localThumbPath = dir + "/" + thumbImageName;
-			String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
-            ParseResult parseResult = new ParseResult();
-            ImageManager.ImageResult result = new ImageManager.ImageResult(0, "");
-
-            if (createThumb){
-                try {
-                    // ImageManager.createThumbImage(localPath, localThumbPath, 256,
-                    // 245);
-                    result = ImageManager.createThumbnail(localPath, localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
-                    log.info("<UploadManager> create thumb file result=" + result);
-                } catch (Exception e) {
-                    remoteThumbPath = null;
-                    log.error("<UploadManager>: fail to save thumb image", e);
+                if (suffix != null){
+                    timeFileString = timeFileString + suffix;
                 }
+
+                String largeImageName = timeFileString + ".jpg";
+
+                // construction path and write file
+                localPath = dir + "/" + largeImageName;
+
+                // construct return http path
+                httpPath = remoteDir + timeDir + "/" + largeImageName;
+
+                // write to file
+                log.info("<uploadFile> write to file=" + localPath+ ", http path = " + httpPath);
+                fw = new FileOutputStream(localPath);
+                fw.write(bytes);
+                fw.close();
+                fw = null;
+                log.info("<uploadFile> write to file " + localPath+ " done");
+
+                // create thumb image
+                String thumbImageName = timeFileString + "_m.jpg";
+                String localThumbPath = dir + "/" + thumbImageName;
+                String remoteThumbPath = remoteDir + timeDir + "/" + thumbImageName;
+                ParseResult parseResult = new ParseResult();
+                ImageManager.ImageResult result = new ImageManager.ImageResult(0, "");
+
+                if (createThumb){
+                    try {
+                        // ImageManager.createThumbImage(localPath, localThumbPath, 256,
+                        // 245);
+                        result = ImageManager.createThumbnail(localPath, localThumbPath, DEFAULT_THUMB_IMAGE_WIDTH);
+                        log.info("<UploadManager> create thumb file result=" + result);
+                    } catch (Exception e) {
+                        remoteThumbPath = null;
+                        log.error("<UploadManager>: fail to save thumb image", e);
+                    }
+                }
+
+                parseResult.setLocalImageUrl(timeDir + "/" + largeImageName);
+                parseResult.setLocalThumbUrl(timeDir + "/" + thumbImageName);
+                parseResult.setThumbUrl(remoteThumbPath);
+                parseResult.setImageUrl(httpPath);
+                parseResult.setImageHeight(result.getImageHeight());
+                parseResult.setImageWidth(result.getImageWidth());
+
+                log.info("<debug> image parse result=" + parseResult.toString());
+                return parseResult;
             }
 
-			parseResult.setLocalImageUrl(timeDir + "/" + largeImageName);
-			parseResult.setLocalThumbUrl(timeDir + "/" + thumbImageName);
-			parseResult.setThumbUrl(remoteThumbPath);
-			parseResult.setImageUrl(httpPath);
-            parseResult.setImageHeight(result.getImageHeight());
-            parseResult.setImageWidth(result.getImageWidth());
-
-			log.info("<debug> image parse result=" + parseResult.toString());
-			return parseResult;
 
 		} catch (Exception e) {
 			log.error("error: <saveImage> error, catch exception:", e);
@@ -334,7 +360,7 @@ public class UploadManager {
 						
 					} else if (imageFieldName != null && name.equalsIgnoreCase(imageFieldName)) {
 						log.info("<readFormData> image data file detected for "+imageFieldName);
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, null, null, true);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, null, null, true, false);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -437,7 +463,7 @@ public class UploadManager {
 					}
                     else if (name != null && name.equalsIgnoreCase(imageFieldName)) {
 						log.info("<getFormDataAndSaveImage> image data file detected.");
-						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, null, true);
+						ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, null, true, false);
 
 						if (pr != null) {
 							result.setImageUrl(pr.getImageUrl());
@@ -451,12 +477,10 @@ public class UploadManager {
                     else if (name != null && name.equalsIgnoreCase(bgImageFieldName)) {
                         log.info("<getFormDataAndSaveImage> bg image file detected.");
                         String bgSuffix = "_bg";
-                        ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, bgSuffix, false);
+                        ParseResult pr = saveImage(item, localImageDir, remoteImageDir, idFileName, bgSuffix, false, true);
                         if (pr != null) {
                             result.setBgImageUrl(pr.getImageUrl());
-//                            result.setBgThumbUrl(pr.getThumbUrl());
                             result.setLocalBgImageUrl(pr.getLocalImageUrl());
-//                            result.setBgLocalThumbUrl(pr.getLocalThumbUrl());
                             result.setBgImageHeight(pr.getImageHeight());
                             result.setBgImageWidth(pr.getImageWidth());
                         }

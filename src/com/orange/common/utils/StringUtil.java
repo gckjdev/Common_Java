@@ -36,9 +36,28 @@ public class StringUtil {
 		catch (UnsupportedEncodingException e) {
 			return null;
 		}
-		
 	}
-	
+
+    public static String md5base64encode(byte[] input) {
+        try {
+            if (input == null)
+                return null;
+
+            if (input.length == 0)
+                return null;
+
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(input);
+            byte[] enc = md.digest();
+            String base64str = Base64.encodeBase64String(enc);
+            return base64str;
+
+        }
+        catch (NoSuchAlgorithmException e) {
+            return null;
+        }
+    }
+
 	public static String base64encode(String input) {
 		if (input == null)
 			return null;
