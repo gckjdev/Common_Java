@@ -23,6 +23,8 @@ public class ShareFileService {
     private static final String SHARE_FILE_KEY = "share_bg_file_key";
     private static final String SHARE_FILE_DIR = PropertyUtil.getStringProperty("upload.shareBgImage", "bg_image");
     private static final String SHARE_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + SHARE_FILE_DIR + "/";
+    private static final String BAK_FILE_DIR = PropertyUtil.getStringProperty("upload.bakBgImage", "bak_bg_image");
+    private static final String BAK_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + BAK_FILE_DIR + "/";
     private static ShareFileService ourInstance = new ShareFileService();
     private ConcurrentHashMap<String, String> shareFileMap = null;
 
@@ -103,6 +105,71 @@ public class ShareFileService {
         }
 
 
+    }
+
+    public void cleanDuplicateFile(){
+
+        // list all *_bg files after 20140801
+
+        // skip dir
+
+        // get file MD5 string and compare in shareMap
+
+        // if exist then update DB and then move file to bak directory
+        // if not exist then create file and update shareMap, then update DB, move file to bak directory
+
+        // read files from dir and store into redis
+
+        File dir = new File(BAK_FILE_PATH);
+        File[] file = dir.listFiles();//存放的是一级目录下的文件以及文件夹
+        if (file == null){
+            return;
+        }
+
+        for (int i = 0; i < file.length; i++) {
+            if (!file[i].isDirectory()){
+                // ignore
+                log.warn("<cleanDuplicateFile> file " + file[i].getName() + " is NOT directory, skip");
+                continue;
+            }
+
+            File subDir = file[i];
+            Integer value = Integer.parseInt(subDir.getName());
+            if (value < 20140801){
+                log.warn("<cleanDuplicateFile> dir " + subDir.getName() + " is valid directory, skip");
+                continue;
+            }
+
+            File[] subDirFiles = subDir.listFiles();
+            if (subDirFiles == null){
+                log.warn("<cleanDuplicateFile> dir " + subDir.getName() + " doesn't contain files");
+                continue;
+            }
+
+            for (int j=0; j < subDirFiles.length; j++){
+                File subFile = subDirFiles[i];
+                if (subFile.isDirectory()){
+                    // skip directory
+                    log.warn("<cleanDuplicateFile> skip " + subFile.getName() + " because it's dir");
+                    continue;
+                }
+
+                if (!subFile.getName().contains("_bg")){
+                    // skip normal file
+                    log.warn("<cleanDuplicateFile> skip " + subFile.getName() + " because it's NOT bg image");
+                    continue;
+                }
+
+                // handle this file
+                processCleanFile(subFile);
+            }
+
+        }
+
+
+    }
+
+    private void processCleanFile(File subFile) {
     }
 
 }
