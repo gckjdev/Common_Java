@@ -1,7 +1,11 @@
 package com.orange.common.utils;
 
+import com.mongodb.BasicDBObject;
+import com.orange.common.db.MongoDBExecutor;
+import com.orange.common.mongodb.MongoDBClient;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,8 +29,13 @@ public class ShareFileService {
     private static final String SHARE_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + SHARE_FILE_DIR + "/";
     private static final String BAK_FILE_DIR = PropertyUtil.getStringProperty("upload.bakBgImage", "bak_bg_image");
     private static final String BAK_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + BAK_FILE_DIR + "/";
+    private static final String CLEAN_FILE_DIR = PropertyUtil.getStringProperty("upload.local.testDrawImage", "/data/draw_image_test/");
+
+
     private static ShareFileService ourInstance = new ShareFileService();
     private ConcurrentHashMap<String, String> shareFileMap = null;
+
+    private MongoDBClient dbClient;
 
     public static ShareFileService getInstance() {
         return ourInstance;
@@ -120,7 +129,8 @@ public class ShareFileService {
 
         // read files from dir and store into redis
 
-        File dir = new File(BAK_FILE_PATH);
+        File dir = new File(CLEAN_FILE_DIR);
+        log.info("<cleanDuplicateFile> dir="+dir.getAbsolutePath());
         File[] file = dir.listFiles();//存放的是一级目录下的文件以及文件夹
         if (file == null){
             return;
@@ -136,7 +146,7 @@ public class ShareFileService {
             File subDir = file[i];
             Integer value = Integer.parseInt(subDir.getName());
             if (value < 20140801){
-                log.warn("<cleanDuplicateFile> dir " + subDir.getName() + " is valid directory, skip");
+                log.warn("<cleanDuplicateFile> dir " + subDir.getName() + " is old directory, skip");
                 continue;
             }
 
@@ -147,7 +157,7 @@ public class ShareFileService {
             }
 
             for (int j=0; j < subDirFiles.length; j++){
-                File subFile = subDirFiles[i];
+                File subFile = subDirFiles[j];
                 if (subFile.isDirectory()){
                     // skip directory
                     log.warn("<cleanDuplicateFile> skip " + subFile.getName() + " because it's dir");
@@ -163,13 +173,67 @@ public class ShareFileService {
                 // handle this file
                 processCleanFile(subFile);
             }
-
         }
 
 
     }
 
-    private void processCleanFile(File subFile) {
+    private void processCleanFile(File file) {
+
+        // get file MD5
+        String md5 = FileUtils.getFileMD5String(file);
+
+        // check if MD5 exist
+        boolean exist = shareFileMap.containsKey(md5);
+        String sharePath = null;
+
+
+        if (!exist){
+
+            String timeFileString = TimeUUIDUtils.getUniqueTimeUUIDinMillis().toString();
+            String path = timeFileString + ".jpg";
+
+            // update map firstly
+            shareFileMap.put(md5, path);
+
+            // write to file
+            FileOutputStream fw = null;
+            String destPath = SHARE_FILE_PATH + path;
+
+            // copy file to share dir
+            FileUtils.copyFile(file, destPath);
+
+            // add into share map
+            shareFileMap.put(md5, path);
+            log.info("update share map, put key="+md5+", value="+path);
+            sharePath = path;
+        }
+        else{
+            sharePath = shareFileMap.get(md5);
+        }
+
+        // update DB
+        String dbSavePath = SHARE_FILE_DIR + "/" + sharePath;
+        String opusId = file.getName().replaceAll("_bg.jpg", "");
+        updateOpusBgPath(opusId, dbSavePath);
+
+        // move to bak directory
+        String bakDir = BAK_FILE_PATH;
+        FileUtils.moveFile(file, bakDir);
+    }
+
+    private void updateOpusBgPath(String opusId, String dbSavePath) {
+        BasicDBObject query = new BasicDBObject("_id", new ObjectId(opusId));
+        BasicDBObject updateValue = new BasicDBObject();
+        BasicDBObject update = new BasicDBObject("$set", updateValue);
+
+        updateValue.put("bg_image", dbSavePath);
+        log.info("<updateOpusBgPath> "+query.toString()+", update="+update.toString());
+        dbClient.updateAll("opus", query, update);
+    }
+
+    public void setDBClient(MongoDBClient client){
+        dbClient = client;
     }
 
 }

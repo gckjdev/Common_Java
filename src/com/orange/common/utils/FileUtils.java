@@ -108,6 +108,60 @@ public class FileUtils {
 		return file.exists();
 	}
 
+    public static boolean moveFile(File srcFile, String destDir)
+    {
+        // Destination directory
+        File dir = new File(destDir);
+        String srcPath = srcFile.getAbsolutePath();
+
+        // Move file to new directory
+        boolean success = srcFile.renameTo(new File(dir, srcFile.getName()));
+        log.info("<moveFile> from "+srcPath+" to "+destDir + (success ? " OK" : "fail"));
+        return success;
+    }
+
+    public static boolean copyFile(File srcFile, String des)
+    {
+        FileInputStream FIS = null;
+        FileOutputStream FOS = null;
+        try
+        {
+            FIS = new FileInputStream(srcFile);
+            FOS = new FileOutputStream(des);
+            byte[] bt = new byte[1024];
+            int readNum = 0;
+            while ((readNum = FIS.read(bt)) != -1)
+            {
+                FOS.write(bt, 0, bt.length);
+            }
+            FIS.close();
+            FOS.close();
+            log.info("<copyFile> from "+srcFile.getAbsolutePath()+" to "+des+" success");
+            return true;
+        }
+        catch (Exception e)
+        {
+            try
+            {
+                if (FIS != null){
+                    FIS.close();
+                }
+
+                if (FOS != null){
+                    FOS.close();
+                }
+            }
+            catch (IOException f)
+            {
+                log.error("<copyFile> from "+srcFile.getAbsolutePath()+" to "+des+", catch exception="+e.toString(), e);
+            }
+            return false;
+        }
+        finally
+        {
+        }
+    }
+
     public static boolean copyFile(String src, String des)
     {
         FileInputStream FIS = null;
@@ -124,7 +178,7 @@ public class FileUtils {
             }
             FIS.close();
             FOS.close();
-            log.error("<copyFile> from "+src+" to "+des+" success");
+            log.info("<copyFile> from "+src+" to "+des+" success");
             return true;
         }
         catch (Exception e)
