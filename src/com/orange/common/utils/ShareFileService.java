@@ -210,6 +210,7 @@ public class ShareFileService {
         }
         else{
             sharePath = shareFileMap.get(md5);
+            log.info("share file found, key="+md5+", value="+sharePath);
         }
 
         // update DB
