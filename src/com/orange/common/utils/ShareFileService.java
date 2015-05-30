@@ -29,7 +29,7 @@ public class ShareFileService {
     private static final String SHARE_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + SHARE_FILE_DIR + "/";
     private static final String BAK_FILE_DIR = PropertyUtil.getStringProperty("upload.bakBgImage", "bak_bg_image");
     private static final String BAK_FILE_PATH = PropertyUtil.getStringProperty("upload.local.drawImage", "/data/draw_image/") + BAK_FILE_DIR + "/";
-    private static final String CLEAN_FILE_DIR = PropertyUtil.getStringProperty("upload.local.testDrawImage", "/data/draw_image_test/");
+    private static final String CLEAN_FILE_DIR = PropertyUtil.getStringProperty("upload.local.testDrawImage", "/data/draw_image/");
 
 
     private static ShareFileService ourInstance = new ShareFileService();
@@ -62,6 +62,7 @@ public class ShareFileService {
             return;
         }
 
+        log.info("<loadShareFiles> share file count +"+file.length);
         for (int i = 0; i < file.length; i++) {
             if (file[i].isDirectory()){
                 continue;
@@ -69,11 +70,12 @@ public class ShareFileService {
             else{
                 String value = file[i].getName();
                 String key = FileUtils.getFileMD5String(file[i]);
+                log.info("<loadShareFiles> "+(i+1)+") key="+key+", value="+value);
                 shareFileMap.put(key, value);
             }
         }
 
-        log.info("<ShareFileMap> "+shareFileMap.toString());
+        log.info("<ShareFileMap> load one, map="+shareFileMap.toString());
     }
 
     public String getAndUpdateShareMap(byte[] data){
