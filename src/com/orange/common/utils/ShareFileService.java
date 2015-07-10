@@ -139,9 +139,15 @@ public class ShareFileService {
         }
 
         for (int i = 0; i < file.length; i++) {
+            log.info("Start processing "+file[i].getAbsolutePath());
             if (!file[i].isDirectory()){
                 // ignore
                 log.warn("<cleanDuplicateFile> file " + file[i].getName() + " is NOT directory, skip");
+                continue;
+            }
+
+            if (file[i].getAbsolutePath().contains(BAK_FILE_DIR)){
+                log.warn("<cleanDuplicateFile> file " + file[i].getName() + " is BAK directory, skip");
                 continue;
             }
 
@@ -177,6 +183,7 @@ public class ShareFileService {
             }
         }
 
+        log.info("End processing all files");
 
     }
 
